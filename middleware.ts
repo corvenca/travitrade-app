@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const secretKey = process.env.JWT_SECRET;
-const key = secretKey ? new TextEncoder().encode(secretKey) : new Uint8Array();
+const secretKey = process.env.JWT_SECRET || 'fallback_secret';
+const key = new TextEncoder().encode(secretKey);
 
 export async function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('travitrade_session')?.value;

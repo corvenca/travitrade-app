@@ -3,8 +3,8 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import pool from '@/lib/db';
 
-const secretKey = process.env.JWT_SECRET;
-const key = secretKey ? new TextEncoder().encode(secretKey) : new Uint8Array();
+const secretKey = process.env.JWT_SECRET || 'fallback_secret';
+const key = new TextEncoder().encode(secretKey);
 
 export async function GET() {
   try {
