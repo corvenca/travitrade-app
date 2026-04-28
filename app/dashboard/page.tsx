@@ -1,181 +1,202 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
+import pool from '@/lib/db';
 import Link from 'next/link';
+import { 
+  LayoutGrid, 
+  BookOpen, 
+  PieChart, 
+  Wallet, 
+  User, 
+  Settings,
+  TrendingUp,
+  TrendingDown
+} from 'lucide-react';
 
-interface User {
-  id: number;
-  nombre: string;
-  email: string;
-  plan: string;
-}
+const secretKey = process.env.JWT_SECRET || 'fallback_secret';
+const key = new TextEncoder().encode(secretKey);
 
-export default function DashboardPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('travitrade_session')?.value;
+  
+  let userName = 'Usuario';
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('/api/auth/me');
-        const data = await res.json();
-        
-        if (data.success && data.user) {
-          setUser(data.user);
-        } else {
-          router.push('/login');
+  if (token) {
+    try {
+      const { payload } = await jwtVerify(token, key, { algorithms: ['HS256'] });
+      // Extraemos el nombre de la BD usando el userId del JWT
+      if (payload.userId) {
+        const userRes = await pool.query('SELECT nombre FROM users WHERE id = $1', [payload.userId]);
+        if (userRes.rows.length > 0) {
+          userName = userRes.rows[0].nombre;
         }
-      } catch (err) {
-        console.error('Error fetching user', err);
-        router.push('/login');
-      } finally {
-        setLoading(false);
       }
-    };
-
-    fetchUser();
-  }, [router]);
-
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
-    router.refresh();
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0a1a0f] flex items-center justify-center text-white font-sans">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1D9E75]"></div>
-      </div>
-    );
+    } catch (err) {
+      console.error('Error verificando token en dashboard:', err);
+    }
   }
 
   return (
-    <div className="min-h-screen bg-[#0a1a0f] text-white font-sans">
-      {/* 1. Navbar superior */}
-      <nav className="bg-[#112a18] border-b border-gray-800 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-xl font-extrabold text-[#1D9E75] tracking-tight">TRAVITRADE</span>
+    <div className="min-h-screen bg-[#0a1a0f] text-white flex">
+      {/* SIDEBAR */}
+      <aside className="w-[260px] fixed top-0 left-0 h-full border-r border-gray-800 bg-[#0a1a0f] flex flex-col p-6 overflow-y-auto">
+        <div className="mb-10">
+          <div className="text-3xl font-extrabold tracking-tight">
+            <span className="text-white">Travi</span><span className="text-[#1D9E75]">trade</span>
           </div>
-          
-          <div className="hidden md:flex items-center space-x-4">
-            <span className="font-medium">{user?.nombre}</span>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#1D9E75]/20 text-[#9FE1CB] border border-[#1D9E75]/30">
-              {user?.plan.toUpperCase()}
-            </span>
-          </div>
+          <p className="text-xs text-gray-500 mt-1 font-medium tracking-widest">APP · V1.0</p>
+        </div>
 
+        <div className="mb-8">
+          <p className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">GENERAL</p>
+          <div className="flex items-center gap-3 px-4 py-3 bg-[#112a18] rounded-lg text-[#1D9E75] font-medium cursor-pointer">
+            <LayoutGrid size={20} />
+            <span>Dashboard</span>
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <p className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">HERRAMIENTAS</p>
+          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
+            <BookOpen size={20} />
+            <span>Travi Journals</span>
+          </div>
+          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
+            <PieChart size={20} />
+            <span>Travi Portafolio</span>
+          </div>
+          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors">
+            <Wallet size={20} />
+            <span>Travi Finance</span>
+          </div>
+        </div>
+
+        <div className="mt-auto">
+          <p className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">CUENTA</p>
+          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
+            <User size={20} />
+            <span>Perfil</span>
+          </div>
+          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors">
+            <Settings size={20} />
+            <span>Ajustes</span>
+          </div>
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <main className="ml-[260px] flex-1 p-8">
+        {/* HEADER */}
+        <header className="flex justify-between items-end mb-10">
           <div>
-            <button 
-              onClick={handleLogout}
-              className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
-            >
-              Cerrar sesión
-            </button>
+            <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
+            <p className="text-gray-400">Martes 28 abril, 2026</p>
           </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* 2. Sección de bienvenida */}
-        <div className="mb-12 text-center md:text-left">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-            Bienvenido, <span className="text-[#9FE1CB]">{user?.nombre.split(' ')[0]}</span>
-          </h1>
-          <p className="text-gray-400 text-lg">Selecciona un producto para comenzar</p>
-        </div>
-
-        {/* 3. Grid de productos */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          {/* Tarjeta 1 - Travi Journals */}
-          <div className="bg-[#112a18] rounded-xl border border-[#1D9E75]/30 p-6 flex flex-col h-full shadow-lg shadow-[#1D9E75]/5 hover:border-[#1D9E75]/70 transition-all">
-            <div className="flex justify-between items-start mb-6">
-              <div className="p-3 bg-[#1D9E75]/10 rounded-lg text-[#9FE1CB]">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                </svg>
-              </div>
-              <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-[#1D9E75]/20 text-[#9FE1CB] border border-[#1D9E75]/30">
-                Disponible
-              </span>
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-2 bg-green-900/30 border border-green-800/50 rounded-full text-green-400 text-sm font-medium flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              Mercado abierto
             </div>
-            <h3 className="text-xl font-bold mb-2">Travi Journals</h3>
-            <p className="text-gray-400 mb-8 flex-grow">Bitácora de trading, setups y estadísticas.</p>
-            <Link 
-              href="https://journals.travitrade.com" 
-              className="w-full text-center py-2.5 bg-[#1D9E75] hover:bg-[#157a5a] text-white font-medium rounded-lg transition-colors"
-            >
-              Ingresar
-            </Link>
+            <div className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-full text-gray-300 text-sm font-medium">
+              NQ 21,430
+            </div>
+            <div className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-full text-gray-300 text-sm font-medium">
+              MNQ 2,143
+            </div>
           </div>
+        </header>
 
-          {/* Tarjeta 2 - Travi Portafolio */}
-          <div className="bg-[#0e1d13] rounded-xl border border-gray-800 p-6 flex flex-col h-full opacity-80">
-            <div className="flex justify-between items-start mb-6">
-              <div className="p-3 bg-gray-800/50 rounded-lg text-gray-400">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-800 text-gray-400">
-                Próximamente
-              </span>
+        {/* METRICS GRID */}
+        <div className="grid grid-cols-4 gap-6 mb-12">
+          {/* Card 1 */}
+          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl">
+            <h3 className="text-gray-400 text-sm font-medium mb-3">P&L DEL MES</h3>
+            <div className="text-3xl font-bold mb-2">+$2,840</div>
+            <div className="text-[#1D9E75] text-sm font-medium flex items-center gap-1">
+              <TrendingUp size={16} />
+              12.4% vs anterior
             </div>
-            <h3 className="text-xl font-bold mb-2 text-gray-300">Travi Portafolio</h3>
-            <p className="text-gray-500 mb-8 flex-grow">Seguimiento de inversiones en tiempo real.</p>
-            <button disabled className="w-full py-2.5 bg-gray-800 text-gray-500 font-medium rounded-lg cursor-not-allowed">
-              Próximamente
-            </button>
           </div>
-
-          {/* Tarjeta 3 - Travi Finance */}
-          <div className="bg-[#0e1d13] rounded-xl border border-gray-800 p-6 flex flex-col h-full opacity-80">
-            <div className="flex justify-between items-start mb-6">
-              <div className="p-3 bg-gray-800/50 rounded-lg text-gray-400">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-800 text-gray-400">
-                Próximamente
-              </span>
+          {/* Card 2 */}
+          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl">
+            <h3 className="text-gray-400 text-sm font-medium mb-3">WIN RATE</h3>
+            <div className="text-3xl font-bold mb-2">67%</div>
+            <div className="text-[#1D9E75] text-sm font-medium flex items-center gap-1">
+              <TrendingUp size={16} />
+              4% este mes
             </div>
-            <h3 className="text-xl font-bold mb-2 text-gray-300">Travi Finance</h3>
-            <p className="text-gray-500 mb-8 flex-grow">Gestión de finanzas personales.</p>
-            <button disabled className="w-full py-2.5 bg-gray-800 text-gray-500 font-medium rounded-lg cursor-not-allowed">
-              Próximamente
-            </button>
+          </div>
+          {/* Card 3 */}
+          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl">
+            <h3 className="text-gray-400 text-sm font-medium mb-3">OPERACIONES</h3>
+            <div className="text-3xl font-bold mb-2">48</div>
+            <div className="text-gray-400 text-sm font-medium">
+              18 esta semana
+            </div>
+          </div>
+          {/* Card 4 */}
+          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl">
+            <h3 className="text-gray-400 text-sm font-medium mb-3">PORTAFOLIO</h3>
+            <div className="text-3xl font-bold mb-2">$18,240</div>
+            <div className="text-red-400 text-sm font-medium flex items-center gap-1">
+              <TrendingDown size={16} />
+              1.2% hoy
+            </div>
           </div>
         </div>
 
-        {/* 4. Sección de plan activo */}
-        <div className="bg-[#112a18] rounded-xl border border-gray-800 p-8 flex flex-col md:flex-row items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Tu Plan Actual</h2>
-            <p className="text-gray-400">
-              Estás suscrito al plan <span className="text-[#9FE1CB] font-semibold">{user?.plan.toUpperCase()}</span>.
+        {/* WELCOME / USER INFO */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold">Bienvenido de nuevo, {userName}</h2>
+          <p className="text-gray-400 mt-1">Explora tus herramientas de trading y finanzas.</p>
+        </div>
+
+        {/* TUS HERRAMIENTAS */}
+        <h3 className="text-lg font-bold mb-6">TUS HERRAMIENTAS</h3>
+        <div className="grid grid-cols-3 gap-6">
+          {/* Tool 1 */}
+          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl flex flex-col">
+            <div className="w-12 h-12 bg-[#112a18] rounded-lg flex items-center justify-center text-[#1D9E75] mb-4">
+              <BookOpen size={24} />
+            </div>
+            <h4 className="text-lg font-bold mb-2">Travi Journals</h4>
+            <p className="text-gray-400 text-sm mb-6 flex-1">
+              Registra y analiza cada operación. Patrones y disciplina
             </p>
+            <button className="w-full py-2.5 bg-[#1D9E75] hover:bg-[#157a5a] text-white font-medium rounded-lg transition-colors">
+              Ingresar
+            </button>
           </div>
           
-          <div className="mt-6 md:mt-0">
-            {user?.plan.toLowerCase() === 'free' ? (
-              <button className="px-6 py-3 bg-[#1D9E75] hover:bg-[#157a5a] text-white font-medium rounded-lg transition-colors shadow-lg shadow-[#1D9E75]/20">
-                Actualizar a Premium
-              </button>
-            ) : (
-              <span className="px-4 py-2 bg-[#1D9E75]/20 border border-[#1D9E75]/50 text-[#9FE1CB] font-semibold rounded-lg flex items-center space-x-2">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Plan Activo</span>
-              </span>
-            )}
+          {/* Tool 2 */}
+          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl flex flex-col opacity-80">
+            <div className="w-12 h-12 bg-[#112a18] rounded-lg flex items-center justify-center text-[#1D9E75] mb-4">
+              <PieChart size={24} />
+            </div>
+            <h4 className="text-lg font-bold mb-2">Travi Portafolio</h4>
+            <p className="text-gray-400 text-sm mb-6 flex-1">
+              Rastrea inversiones y el rendimiento de tu portafolio
+            </p>
+            <button className="w-full py-2.5 bg-gray-800 text-gray-500 font-medium rounded-lg cursor-not-allowed">
+              Próximamente
+            </button>
+          </div>
+
+          {/* Tool 3 */}
+          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl flex flex-col opacity-80">
+            <div className="w-12 h-12 bg-[#112a18] rounded-lg flex items-center justify-center text-[#1D9E75] mb-4">
+              <Wallet size={24} />
+            </div>
+            <h4 className="text-lg font-bold mb-2">Travi Finance</h4>
+            <p className="text-gray-400 text-sm mb-6 flex-1">
+              Controla gastos, metas y presupuestos personales
+            </p>
+            <button className="w-full py-2.5 bg-gray-800 text-gray-500 font-medium rounded-lg cursor-not-allowed">
+              Próximamente
+            </button>
           </div>
         </div>
-
       </main>
     </div>
   );

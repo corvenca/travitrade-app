@@ -50,13 +50,15 @@ export default function RegistroPage() {
     <div className="min-h-screen bg-[#0a1a0f] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 text-white font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-[#1D9E75] tracking-tight">TRAVITRADE</h1>
+          <div className="text-5xl font-extrabold tracking-tight mb-4">
+            <span className="text-white">Travi</span><span className="text-[#1D9E75]">trade</span>
+          </div>
           <p className="mt-2 text-sm text-gray-400">Crea una cuenta para comenzar</p>
         </div>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-[#112a18] py-8 px-4 shadow-2xl sm:rounded-xl sm:px-10 border border-gray-800">
+        <div className="bg-[#0d1f14] py-8 px-4 shadow-2xl sm:rounded-xl sm:px-10 border border-gray-800">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="nombre" className="block text-sm font-medium text-gray-300">
@@ -152,7 +154,7 @@ export default function RegistroPage() {
                 <div className="w-full border-t border-gray-700" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-[#112a18] text-gray-400">
+                <span className="px-2 bg-[#0d1f14] text-gray-400">
                   ¿Ya tienes cuenta?
                 </span>
               </div>
