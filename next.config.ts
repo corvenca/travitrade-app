@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Configuración recomendada para despliegues en contenedores (como Railway)
+  output: "standalone",
 };
 
 export default nextConfig;
