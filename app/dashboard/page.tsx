@@ -164,9 +164,26 @@ export default async function DashboardPage() {
             <p className="text-gray-400 text-sm mb-6 flex-1">
               Registra y analiza cada operación. Patrones y disciplina
             </p>
-            <button className="w-full py-2.5 bg-[#1D9E75] hover:bg-[#157a5a] text-white font-medium rounded-lg transition-colors">
+            <a 
+              href="https://journals.travitrade.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '10px',
+                background: '#1D9E75',
+                color: '#fff',
+                borderRadius: '8px',
+                textAlign: 'center',
+                fontSize: '14px',
+                fontWeight: '500',
+                textDecoration: 'none',
+                marginTop: 'auto'
+              }}
+            >
               Ingresar
-            </button>
+            </a>
           </div>
           
           {/* Tool 2 */}
