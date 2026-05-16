@@ -28,13 +28,21 @@ export async function GET() {
 
     const user = userResult.rows[0];
 
-    return NextResponse.json({
+    const userData = {
       success: true,
       user: {
         id: user.id,
         nombre: user.nombre,
         email: user.email,
         plan: user.plan
+      }
+    };
+
+    return NextResponse.json(userData, {
+      headers: {
+        'Access-Control-Allow-Origin': 'http://localhost:3001',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Methods': 'GET',
       }
     });
   } catch (error) {

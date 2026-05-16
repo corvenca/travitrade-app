@@ -2,6 +2,8 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import pool from '@/lib/db';
 import Link from 'next/link';
+import MarketTicker from '@/components/MarketTicker';
+import SidebarLink from '@/components/SidebarLink';
 import { 
   LayoutGrid, 
   BookOpen, 
@@ -58,10 +60,12 @@ export default async function DashboardPage() {
 
         <div className="mb-8">
           <p className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">HERRAMIENTAS</p>
-          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
-            <BookOpen size={20} />
-            <span>Travi Journals</span>
-          </div>
+          <SidebarLink href="http://localhost:3001/trading/dashboard">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 10 L4 7 L7 9 L10 4 L13 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Travi Journals
+          </SidebarLink>
           <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
             <PieChart size={20} />
             <span>Travi Portafolio</span>
@@ -74,10 +78,12 @@ export default async function DashboardPage() {
 
         <div className="mt-auto">
           <p className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">CUENTA</p>
-          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
-            <User size={20} />
-            <span>Perfil</span>
-          </div>
+          <Link href="/perfil">
+            <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
+              <User size={20} />
+              <span>Perfil</span>
+            </div>
+          </Link>
           <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors">
             <Settings size={20} />
             <span>Ajustes</span>
@@ -86,7 +92,9 @@ export default async function DashboardPage() {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="ml-[260px] flex-1 p-8">
+      <main className="ml-[260px] flex-1 flex flex-col">
+        <MarketTicker />
+        <div className="p-8 flex-1">
         {/* HEADER */}
         <header className="flex justify-between items-end mb-10">
           <div>
@@ -165,8 +173,7 @@ export default async function DashboardPage() {
               Registra y analiza cada operación. Patrones y disciplina
             </p>
             <a 
-              href="https://journals.travitrade.com" 
-              target="_blank" 
+              href="http://localhost:3001/trading/dashboard" 
               rel="noopener noreferrer"
               style={{
                 display: 'block',
@@ -213,6 +220,7 @@ export default async function DashboardPage() {
               Próximamente
             </button>
           </div>
+        </div>
         </div>
       </main>
     </div>
