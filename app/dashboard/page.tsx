@@ -60,7 +60,7 @@ export default async function DashboardPage() {
 
         <div className="mb-8">
           <p className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">HERRAMIENTAS</p>
-          <SidebarLink href="http://localhost:3001/trading/dashboard">
+          <SidebarLink href="https://journals.travitrade.com">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M1 10 L4 7 L7 9 L10 4 L13 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -173,7 +173,7 @@ export default async function DashboardPage() {
               Registra y analiza cada operación. Patrones y disciplina
             </p>
             <a 
-              href="http://localhost:3001/trading/dashboard" 
+              href="https://journals.travitrade.com" 
               rel="noopener noreferrer"
               style={{
                 display: 'block',
