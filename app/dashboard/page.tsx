@@ -4,6 +4,7 @@ import pool from '@/lib/db';
 import Link from 'next/link';
 import MarketTicker from '@/components/MarketTicker';
 import SidebarLink from '@/components/SidebarLink';
+import LogoutButton from '@/components/LogoutButton';
 import { 
   LayoutGrid, 
   BookOpen, 
@@ -88,6 +89,7 @@ export default async function DashboardPage() {
             <Settings size={20} />
             <span>Ajustes</span>
           </div>
+          <LogoutButton />
         </div>
       </aside>
 

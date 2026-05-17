@@ -13,6 +13,9 @@ export function middleware(request: NextRequest) {
   }
 
   if (token && isPublic) {
+    if (request.nextUrl.searchParams.get('from') === 'external' || request.nextUrl.searchParams.get('logout') === 'true') {
+      return NextResponse.next()
+    }
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
