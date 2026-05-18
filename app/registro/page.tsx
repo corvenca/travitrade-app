@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { COUNTRIES } from '@/lib/countries';
@@ -240,7 +240,16 @@ export default function RegistroPage() {
     password: '',
     confirmPassword: '',
   });
-  const [selectedPlan, setSelectedPlan] = useState('free');
+  const [selectedPlan, setSelectedPlan] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const planParam = params.get('plan');
+      if (planParam && ['free', 'pro', 'business'].includes(planParam)) {
+        return planParam;
+      }
+    }
+    return 'free';
+  });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
