@@ -14,7 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Travitrade",
-  description: "Plataforma de trading y gestión",
+  description: "Plataforma de trading y finanzas",
+  icons: {
+    icon: '/favicon.ico',
+  }
 };
 
 export default function RootLayout({
