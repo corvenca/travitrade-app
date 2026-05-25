@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { SignJWT } from 'jose';
+import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
 const secretKey = process.env.JWT_SECRET || 'fallback_secret';
@@ -31,21 +31,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    const token = await new SignJWT({ userId: user.id, email: user.email, plan: user.plan })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
-      .setExpirationTime('1d')
-      .sign(key);
+    const isAdmin = user.email === 'altuveronalbis@gmail.com';
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, nombre: user.nombre, plan: user.plan || 'free', isAdmin },
+      process.env.JWT_SECRET || 'travitrade_secret_2025',
+      { expiresIn: '7d' }
+    );
 
     (await cookies()).set('travitrade_session', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24
+      maxAge: 60 * 60 * 24 * 7
     });
 
-    return NextResponse.json({ success: true, user: { id: user.id, nombre: user.nombre, email: user.email } });
+    return NextResponse.json({ success: true, isAdmin });
   } catch (error: any) {
     console.error('Login error:', error);
     return NextResponse.json({ success: false, error: 'Error interno del servidor' }, { status: 500 });

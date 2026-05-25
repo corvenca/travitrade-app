@@ -33,7 +33,11 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (data.success) {
-        router.push('/dashboard');
+        if (data.isAdmin) {
+          router.push('/admin');
+        } else {
+          router.push('/dashboard');
+        }
         router.refresh();
       } else {
         setError(data.error || 'Error al iniciar sesión');

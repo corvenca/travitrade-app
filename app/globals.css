@@ -43,3 +43,8 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #1a3a24;
 }
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
