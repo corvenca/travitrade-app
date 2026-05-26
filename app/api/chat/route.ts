@@ -14,7 +14,7 @@ PRODUCTOS:
 
 PLANES:
 - Plan Free ($0/mes): 1 cuenta de trading, hasta 40 operaciones, setups ilimitados, dashboard básico. Sin calendario, sin análisis de setups, sin reportes avanzados.
-- Plan Pro ($19/mes): Todo ilimitado. Cuentas ilimitadas, operaciones ilimitadas, calendario completo, análisis de setups, reportes avanzados PDF, soporte prioritario.
+- Plan Pro ($5.99/mes): Todo ilimitado. Cuentas ilimitadas, operaciones ilimitadas, calendario completo, análisis de setups, reportes avanzados PDF, soporte prioritario.
 
 ACCESO:
 - Registro en app.travitrade.com/registro
@@ -47,6 +47,8 @@ Si el usuario quiere hablar con un humano, dile: "Puedo conectarte con nuestro e
 export async function POST(request: Request) {
   try {
     const { messages, sessionId } = await request.json()
+    console.log('API Key exists:', !!process.env.ANTHROPIC_API_KEY)
+    console.log('Messages:', JSON.stringify(messages))
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -56,10 +58,10 @@ export async function POST(request: Request) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-5',
         max_tokens: 500,
         system: TRAVITRADE_CONTEXT,
-        messages: messages.map((m: any) => ({
+        messages: messages.filter((m: any) => m.role !== 'assistant' || messages.indexOf(m) > 0).map((m: any) => ({
           role: m.role,
           content: m.content
         }))
@@ -67,6 +69,13 @@ export async function POST(request: Request) {
     })
 
     const data = await response.json()
+    console.log('Anthropic response:', JSON.stringify(data))
+
+    if (data.error) {
+      console.error('Anthropic error:', data.error)
+      return NextResponse.json({ reply: `Error: ${data.error.message}` })
+    }
+
     const reply = data.content?.[0]?.text || 'Lo siento, no pude procesar tu mensaje.'
 
     // Guardar en base de datos
@@ -90,6 +99,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ reply, sessionId })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('Chat error:', error)
+    return NextResponse.json({ reply: `Error: ${error.message}` }, { status: 500 })
   }
 }

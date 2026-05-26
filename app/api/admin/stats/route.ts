@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken'
 
 export async function GET() {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const token = cookieStore.get('travitrade_session')
     if (!token) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'travitrade_secret_2025') as any
@@ -26,7 +26,7 @@ export async function GET() {
       proUsers: pro,
       freeUsers: free,
       newThisMonth: newMonth,
-      monthlyRevenue: pro * 19,
+      monthlyRevenue: pro * 5.99,
       conversionRate: total > 0 ? ((pro / total) * 100).toFixed(1) : 0
     })
   } catch (error) {

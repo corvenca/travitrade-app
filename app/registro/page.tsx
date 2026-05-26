@@ -197,7 +197,7 @@ const PLANS = [
   {
     id: 'pro',
     name: 'Plan Pro',
-    price: '$19',
+    price: '$5.99',
     period: '/mes',
     recommended: true,
     features: [

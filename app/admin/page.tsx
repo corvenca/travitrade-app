@@ -78,7 +78,7 @@ export default function AdminPage() {
             { label: 'TOTAL USUARIOS', value: stats?.totalUsers || 0, sub: `+${stats?.newThisMonth || 0} este mes`, color: '#1D9E75' },
             { label: 'PLAN PRO', value: stats?.proUsers || 0, sub: `${stats?.conversionRate || 0}% conversión`, color: '#3b82f6' },
             { label: 'PLAN FREE', value: stats?.freeUsers || 0, sub: 'usuarios gratuitos', color: '#F59E0B' },
-            { label: 'INGRESOS MES', value: `$${stats?.monthlyRevenue || 0}`, sub: `${stats?.proUsers || 0} × $19/mes`, color: '#E24B4A' },
+            { label: 'INGRESOS MES', value: `$${stats?.monthlyRevenue || 0}`, sub: `${stats?.proUsers || 0} × $5.99/mes`, color: '#E24B4A' },
           ].map((m, i) => (
             <div key={i} style={{ background: '#0d1f14', borderRadius: '10px', padding: '14px', borderTop: `2px solid ${m.color}` }}>
               <div style={{ fontSize: '9px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1.5px', marginBottom: '8px' }}>{m.label}</div>
