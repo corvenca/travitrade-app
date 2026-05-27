@@ -30,16 +30,17 @@ export default function AdminPage() {
         </div>
 
         {[
-          { id: 'dashboard', label: 'Dashboard', color: '#1D9E75' },
-          { id: 'usuarios', label: 'Usuarios', color: '#1D9E75' },
-          { id: 'mensajeria', label: 'Mensajería', color: '#F59E0B' },
-          { id: 'seguridad', label: 'Seguridad', color: '#E24B4A' },
+          { id: 'dashboard', label: 'Dashboard', color: '#1D9E75', href: '/admin' },
+          { id: 'usuarios', label: 'Usuarios', color: '#1D9E75', href: '/admin/usuarios' },
+          { id: 'mensajeria', label: 'Mensajería', color: '#F59E0B', href: '/admin/mensajeria' },
+          { id: 'seguridad', label: 'Seguridad', color: '#E24B4A', href: '/admin/seguridad' },
         ].map(item => (
-          <div key={item.id}
-            onClick={() => setActiveSection(item.id)}
+          <a key={item.id}
+            href={item.href}
             style={{
               display: 'flex', alignItems: 'center', gap: '10px',
               padding: '10px 20px', fontSize: '13px', cursor: 'pointer',
+              textDecoration: 'none',
               color: activeSection === item.id ? item.color : 'rgba(159,225,203,0.6)',
               background: activeSection === item.id ? '#0f2a1a' : 'transparent',
               borderLeft: activeSection === item.id ? `2px solid ${item.color}` : '2px solid transparent'
@@ -47,7 +48,7 @@ export default function AdminPage() {
           >
             <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: item.color }} />
             {item.label}
-          </div>
+          </a>
         ))}
 
         <div style={{ marginTop: 'auto', padding: '16px 20px', borderTop: '0.5px solid #1a3a24' }}>

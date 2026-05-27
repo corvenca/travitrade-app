@@ -1,38 +1,42 @@
 import { NextResponse } from 'next/server'
 import { Pool } from 'pg'
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { headers: corsHeaders })
+}
+
 const TRAVITRADE_CONTEXT = `
 Eres el asistente virtual de Travitrade. Tu nombre es Travi.
 
 REGLAS DE COMPORTAMIENTO:
 - Respuestas CORTAS, máximo 3 oraciones. Ve al grano.
 - Tono amigable, cercano y humano. Como un amigo experto en trading.
-- Usa emojis ocasionalmente para dar calidez 😊
-- Si el usuario ya está registrado y conoces su nombre, salúdalo por su nombre.
+- Usa emojis ocasionalmente 😊
+- Si conoces el nombre del usuario, salúdalo por su nombre.
 - Nunca des respuestas largas o técnicas innecesarias.
 - Si no sabes algo, di "Déjame conectarte con nuestro equipo 👋"
 
-MENÚ INICIAL (solo en el primer mensaje del usuario):
-Si el usuario dice "hola", "buenos días", "hey" o cualquier saludo, responde con:
-"¡Hola! 👋 Soy Travi, tu asistente de Travitrade. ¿De qué te gustaría hablar hoy?
+SALUDO INICIAL:
+Cuando el usuario saluda por primera vez responde:
+"¡Hola! 👋 Soy Travi, tu asistente de Travitrade. ¿En qué puedo ayudarte hoy?"
 
-1️⃣ Productos
-2️⃣ Planes y precios  
-3️⃣ Suscripción
-4️⃣ Pagos
-5️⃣ Otra información
-6️⃣ Hablar con un agente
-
-Cuando el usuario elija una opción, responde específicamente sobre ese tema.
-Si elige "Hablar con un agente" (opción 6), dile: "¡Perfecto! 🙌 Ya avisé a nuestro equipo. Estarán contigo en breve. Mientras tanto, ¿hay algo más en que pueda ayudarte?"
+Luego responde según lo que el usuario escriba libremente.
+Si el usuario quiere hablar con un agente di: "¡Perfecto! 🙌 Ya avisé al equipo. Estarán contigo en breve."
 
 INFORMACIÓN DE TRAVITRADE:
-- Travi Journals: Bitácora de trading profesional. TP, BE, SL, curva de equity, calendario, reportes.
-- Plan Free: $0/mes — 1 cuenta, 40 operaciones, dashboard básico.
-- Plan Pro: $5.99/mes — todo ilimitado, calendario, análisis, reportes PDF, soporte prioritario.
+- Travi Journals: Bitácora de trading profesional. TP, BE, SL, curva de equity, calendario, reportes avanzados.
+- Plan Free: $0/mes — 1 cuenta, 40 operaciones, dashboard básico. Sin calendario ni reportes avanzados.
+- Plan Pro: $5.99/mes — todo ilimitado, calendario completo, análisis de setups, reportes PDF, soporte prioritario.
 - Registro: app.travitrade.com/registro
 - Soporte: soporte@travitrade.com | Instagram: @travitrade
 - Compatible con NinjaTrader, Forex, Crypto, Futuros y más.
+- Sin tarjeta de crédito para plan Free. Cancela cuando quieras.
 `
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false })
@@ -43,7 +47,7 @@ export async function POST(request: Request) {
 
     const validMessages = messages.filter((m: any) => m.content && m.content.trim().length > 0)
     if (validMessages.length === 0) {
-      return NextResponse.json({ reply: '¿En qué puedo ayudarte? 😊' })
+      return NextResponse.json({ reply: '¿En qué puedo ayudarte? 😊' }, { headers: corsHeaders })
     }
 
     // Buscar si el usuario está registrado
@@ -111,9 +115,10 @@ export async function POST(request: Request) {
     // Detectar estado del cliente
     const lastMsg = messages[messages.length - 1]?.content?.toLowerCase() || ''
     let status = 'potencial'
-    if (userData?.plan === 'pro') status = 'cliente'
-    else if (lastMsg.includes('no me interesa') || lastMsg.includes('no gracias') || lastMsg.includes('adiós')) status = 'sin_interes'
-    else if (lastMsg.includes('precio') || lastMsg.includes('plan') || lastMsg.includes('suscrib') || lastMsg.includes('comprar')) status = 'interes_alto'
+    if (userData?.plan === 'pro') status = 'cliente_pro'
+    else if (userData?.plan === 'free') status = 'cliente_free'
+    else if (lastMsg.includes('no me interesa') || lastMsg.includes('no gracias')) status = 'sin_interes'
+    else if (lastMsg.includes('precio') || lastMsg.includes('plan') || lastMsg.includes('suscrib') || lastMsg.includes('comprar') || lastMsg.includes('pagar')) status = 'interes_alto'
 
     const lastUserMsg = messages[messages.length - 1]
     await pool.query(
@@ -125,9 +130,9 @@ export async function POST(request: Request) {
       [sessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', 'assistant', reply, status]
     )
 
-    return NextResponse.json({ reply, sessionId, userName })
+    return NextResponse.json({ reply, sessionId, userName }, { headers: corsHeaders })
   } catch (error: any) {
     console.error('Chat error:', error)
-    return NextResponse.json({ reply: 'Ups, algo salió mal 😅 Intenta de nuevo.', error: error.message }, { status: 500 })
+    return NextResponse.json({ reply: 'Ups, algo salió mal 😅 Intenta de nuevo.', error: error.message }, { status: 500, headers: corsHeaders })
   }
 }

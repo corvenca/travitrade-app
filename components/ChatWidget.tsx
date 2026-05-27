@@ -13,19 +13,7 @@ export default function ChatWidget() {
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2)}`)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userNameChat, setUserNameChat] = useState<string | null>(null)
-  const [showMenu, setShowMenu] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  const MENU_OPTIONS = [
-    { id: '1', label: '📦 Productos' },
-    { id: '2', label: '💰 Planes y precios' },
-    { id: '3', label: '🔄 Suscripción' },
-    { id: '4', label: '👨💼 Hablar con un agente' },
-    { id: '5', label: '💳 Pagos' },
-    { id: '6', label: 'ℹ️ Otra información' },
-  ]
-  const lastBotMsg = messages.filter(m => m.role === 'assistant').slice(-1)[0]?.content || ''
-  const isMenuVisible = lastBotMsg.includes('1️⃣') || lastBotMsg.includes('¿De qué te gustaría')
 
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(data => {
@@ -137,75 +125,17 @@ export default function ChatWidget() {
             <div ref={messagesEndRef} />
           </div>
 
-          {isMenuVisible && (
-            <div style={{ padding: '8px 12px', borderTop: '0.5px solid #1a3a24', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {MENU_OPTIONS.map(opt => (
-                <button
-                  key={opt.id}
-                  onClick={() => {
-                    // Texto limpio sin emojis para enviar a la API
-                    const cleanText = opt.label.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[📦💰🔄👨💼💳ℹ️]/gu, '').trim()
-                    const userMsg = { role: 'user' as const, content: cleanText }
-                    const newMessages = [...messages, userMsg]
-                    setMessages(newMessages)
-                    setLoading(true)
-
-                    fetch('/api/chat', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        messages: newMessages,
-                        sessionId,
-                        userEmail: userEmail || null
-                      })
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                      if (data.reply) {
-                        setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
-                      }
-                      setLoading(false)
-                    })
-                    .catch(err => {
-                      console.error('Chat error:', err)
-                      setMessages(prev => [...prev, { role: 'assistant', content: 'Ups, intenta de nuevo 😅' }])
-                      setLoading(false)
-                    })
-                  }}
-                  style={{
-                    background: '#0a1a0f',
-                    border: '0.5px solid #1a3a24',
-                    borderRadius: '8px',
-                    padding: '8px 12px',
-                    color: '#9FE1CB',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'border-color 0.15s'
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.borderColor = '#1D9E75')}
-                  onMouseLeave={e => (e.currentTarget.style.borderColor = '#1a3a24')}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
-
           {/* Input */}
           <div style={{ padding: '10px', borderTop: '0.5px solid #1a3a24', display: 'flex', gap: '8px' }}>
             <input
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && sendMessage()}
-              placeholder="Escribe tu pregunta..."
+              placeholder="Escribe tu mensaje..."
               style={{ flex: 1, background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '8px 10px', color: '#9FE1CB', fontSize: '13px', outline: 'none' }}
             />
-            <button
-              onClick={sendMessage}
-              disabled={loading || !input.trim()}
-              style={{ background: '#1D9E75', border: 'none', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-            >
+            <button onClick={sendMessage} disabled={loading || !input.trim()}
+              style={{ background: '#1D9E75', border: 'none', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer' }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8l12-6-6 12-2-4-4-2z" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round"/></svg>
             </button>
           </div>
