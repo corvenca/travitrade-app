@@ -59,9 +59,12 @@ export default function DashboardPage() {
     return { open: false, label: 'Mercado cerrado', sub: 'Reabre a las 4:00 AM ET', color: '#E24B4A' }
   }
 
-  const [marketStatus, setMarketStatus] = useState(getMarketStatus())
+  const [marketStatus, setMarketStatus] = useState<any>({ open: false, label: 'Mercado cerrado', sub: 'Calculando...', color: '#E24B4A' })
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    setMarketStatus(getMarketStatus())
     // Actualizar cada minuto
     const interval = setInterval(() => {
       setMarketStatus(getMarketStatus())
@@ -135,7 +138,7 @@ export default function DashboardPage() {
             <p className="text-gray-400">Martes 28 abril, 2026</p>
           </div>
           <div className="flex items-center gap-3">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#0d1f14', border: `0.5px solid ${marketStatus.color}`, borderRadius: '20px', padding: '5px 12px' }}>
+            <div className="notranslate" translate="no" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#0d1f14', border: `0.5px solid ${marketStatus.color}`, borderRadius: '20px', padding: '5px 12px' }}>
               <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: marketStatus.color, animation: marketStatus.open ? 'pulse 2s infinite' : 'none' }} />
               <div>
                 <div style={{ fontSize: '12px', fontWeight: '500', color: marketStatus.color }}>{marketStatus.label}</div>
@@ -153,42 +156,48 @@ export default function DashboardPage() {
         </header>
 
         {/* METRICS GRID */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '24px' }}>
+        <div className="notranslate" translate="no" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '24px' }}>
           <div style={{ background: '#0d1f14', borderRadius: '10px', padding: '16px', borderTop: '2px solid #1D9E75' }}>
             <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1.5px', marginBottom: '8px' }}>PNL TOTAL</div>
             <div style={{ fontSize: '22px', fontWeight: '500', color: parseFloat(userStats?.totalPnl) >= 0 ? '#1D9E75' : '#E24B4A' }}>
-              {parseFloat(userStats?.totalPnl) >= 0 ? '+' : ''}${userStats?.totalPnl || '0.00'}
+              <span>{parseFloat(userStats?.totalPnl) >= 0 ? '+' : ''}${userStats?.totalPnl || '0.00'}</span>
             </div>
             <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
-              Este mes: {parseFloat(userStats?.thisMonthPnl) >= 0 ? '+' : ''}${userStats?.thisMonthPnl || '0.00'}
+              <span>Este mes: {parseFloat(userStats?.thisMonthPnl) >= 0 ? '+' : ''}${userStats?.thisMonthPnl || '0.00'}</span>
             </div>
           </div>
           <div style={{ background: '#0d1f14', borderRadius: '10px', padding: '16px', borderTop: '2px solid #3b82f6' }}>
             <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1.5px', marginBottom: '8px' }}>WIN RATE</div>
-            <div style={{ fontSize: '22px', fontWeight: '500', color: '#fff' }}>{userStats?.winRate || '0'}%</div>
+            <div style={{ fontSize: '22px', fontWeight: '500', color: '#fff' }}>
+              <span>{userStats?.winRate || '0'}%</span>
+            </div>
             <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
-              {userStats?.totalWins || 0}G · {userStats?.totalLosses || 0}P · {userStats?.totalBE || 0}BE
+              <span>{userStats?.totalWins || 0}G · {userStats?.totalLosses || 0}P · {userStats?.totalBE || 0}BE</span>
             </div>
           </div>
           <div style={{ background: '#0d1f14', borderRadius: '10px', padding: '16px', borderTop: '2px solid #F59E0B' }}>
             <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1.5px', marginBottom: '8px' }}>OPERACIONES</div>
-            <div style={{ fontSize: '22px', fontWeight: '500', color: '#fff' }}>{userStats?.totalOps || 0}</div>
+            <div style={{ fontSize: '22px', fontWeight: '500', color: '#fff' }}>
+              <span>{userStats?.totalOps || 0}</span>
+            </div>
             <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
-              {userStats?.totalAccounts || 0} cuenta{userStats?.totalAccounts !== 1 ? 's' : ''}
+              <span>{userStats?.totalAccounts || 0} cuenta{userStats?.totalAccounts !== 1 ? 's' : ''}</span>
             </div>
           </div>
           <div style={{ background: '#0d1f14', borderRadius: '10px', padding: '16px', borderTop: '2px solid #9FE1CB' }}>
             <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1.5px', marginBottom: '8px' }}>MEJOR TRADE</div>
-            <div style={{ fontSize: '22px', fontWeight: '500', color: '#1D9E75' }}>+${userStats?.bestTrade || '0.00'}</div>
+            <div style={{ fontSize: '22px', fontWeight: '500', color: '#1D9E75' }}>
+              <span>+${userStats?.bestTrade || '0.00'}</span>
+            </div>
             <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
-              Peor: ${userStats?.worstTrade || '0.00'}
+              <span>Peor: ${userStats?.worstTrade || '0.00'}</span>
             </div>
           </div>
         </div>
 
         {/* WELCOME / USER INFO */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold">Bienvenido de nuevo, {userName}</h2>
+          <h2 className="text-xl font-bold">Bienvenido de nuevo, <span className="notranslate" translate="no">{userName}</span></h2>
           <p className="text-gray-400 mt-1">Explora tus herramientas de trading y finanzas.</p>
         </div>
 
