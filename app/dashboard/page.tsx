@@ -1,6 +1,6 @@
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
-import pool from '@/lib/db';
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import MarketTicker from '@/components/MarketTicker';
 import SidebarLink from '@/components/SidebarLink';
@@ -16,29 +16,17 @@ import {
   TrendingDown
 } from 'lucide-react';
 
-const secretKey = process.env.JWT_SECRET || 'fallback_secret';
-const key = new TextEncoder().encode(secretKey);
+export default function DashboardPage() {
+  const [userStats, setUserStats] = useState<any>(null);
 
-export default async function DashboardPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('travitrade_session')?.value;
-  
-  let userName = 'Usuario';
+  useEffect(() => {
+    fetch('/api/user/summary')
+      .then(r => r.json())
+      .then(data => setUserStats(data))
+      .catch(() => {})
+  }, []);
 
-  if (token) {
-    try {
-      const { payload } = await jwtVerify(token, key, { algorithms: ['HS256'] });
-      // Extraemos el nombre de la BD usando el userId del JWT
-      if (payload.userId) {
-        const userRes = await pool.query('SELECT nombre FROM users WHERE id = $1', [payload.userId]);
-        if (userRes.rows.length > 0) {
-          userName = userRes.rows[0].nombre;
-        }
-      }
-    } catch (err) {
-      console.error('Error verificando token en dashboard:', err);
-    }
-  }
+  const userName = userStats?.userName || 'Usuario';
 
   return (
     <div className="min-h-screen bg-[#0a1a0f] text-white flex">
@@ -118,40 +106,35 @@ export default async function DashboardPage() {
         </header>
 
         {/* METRICS GRID */}
-        <div className="grid grid-cols-4 gap-6 mb-12">
-          {/* Card 1 */}
-          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl">
-            <h3 className="text-gray-400 text-sm font-medium mb-3">P&L DEL MES</h3>
-            <div className="text-3xl font-bold mb-2">+$2,840</div>
-            <div className="text-[#1D9E75] text-sm font-medium flex items-center gap-1">
-              <TrendingUp size={16} />
-              12.4% vs anterior
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ background: '#0d1f14', borderRadius: '10px', padding: '16px', borderTop: '2px solid #1D9E75' }}>
+            <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1.5px', marginBottom: '8px' }}>PNL TOTAL</div>
+            <div style={{ fontSize: '22px', fontWeight: '500', color: parseFloat(userStats?.totalPnl) >= 0 ? '#1D9E75' : '#E24B4A' }}>
+              {parseFloat(userStats?.totalPnl) >= 0 ? '+' : ''}${userStats?.totalPnl || '0.00'}
+            </div>
+            <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
+              Este mes: {parseFloat(userStats?.thisMonthPnl) >= 0 ? '+' : ''}${userStats?.thisMonthPnl || '0.00'}
             </div>
           </div>
-          {/* Card 2 */}
-          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl">
-            <h3 className="text-gray-400 text-sm font-medium mb-3">WIN RATE</h3>
-            <div className="text-3xl font-bold mb-2">67%</div>
-            <div className="text-[#1D9E75] text-sm font-medium flex items-center gap-1">
-              <TrendingUp size={16} />
-              4% este mes
+          <div style={{ background: '#0d1f14', borderRadius: '10px', padding: '16px', borderTop: '2px solid #3b82f6' }}>
+            <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1.5px', marginBottom: '8px' }}>WIN RATE</div>
+            <div style={{ fontSize: '22px', fontWeight: '500', color: '#fff' }}>{userStats?.winRate || '0'}%</div>
+            <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
+              {userStats?.totalWins || 0}G · {userStats?.totalLosses || 0}P · {userStats?.totalBE || 0}BE
             </div>
           </div>
-          {/* Card 3 */}
-          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl">
-            <h3 className="text-gray-400 text-sm font-medium mb-3">OPERACIONES</h3>
-            <div className="text-3xl font-bold mb-2">48</div>
-            <div className="text-gray-400 text-sm font-medium">
-              18 esta semana
+          <div style={{ background: '#0d1f14', borderRadius: '10px', padding: '16px', borderTop: '2px solid #F59E0B' }}>
+            <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1.5px', marginBottom: '8px' }}>OPERACIONES</div>
+            <div style={{ fontSize: '22px', fontWeight: '500', color: '#fff' }}>{userStats?.totalOps || 0}</div>
+            <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
+              {userStats?.totalAccounts || 0} cuenta{userStats?.totalAccounts !== 1 ? 's' : ''}
             </div>
           </div>
-          {/* Card 4 */}
-          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl">
-            <h3 className="text-gray-400 text-sm font-medium mb-3">PORTAFOLIO</h3>
-            <div className="text-3xl font-bold mb-2">$18,240</div>
-            <div className="text-red-400 text-sm font-medium flex items-center gap-1">
-              <TrendingDown size={16} />
-              1.2% hoy
+          <div style={{ background: '#0d1f14', borderRadius: '10px', padding: '16px', borderTop: '2px solid #9FE1CB' }}>
+            <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1.5px', marginBottom: '8px' }}>MEJOR TRADE</div>
+            <div style={{ fontSize: '22px', fontWeight: '500', color: '#1D9E75' }}>+${userStats?.bestTrade || '0.00'}</div>
+            <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
+              Peor: ${userStats?.worstTrade || '0.00'}
             </div>
           </div>
         </div>
