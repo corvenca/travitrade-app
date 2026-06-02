@@ -26,6 +26,49 @@ export default function DashboardPage() {
       .catch(() => {})
   }, []);
 
+  const getMarketStatus = () => {
+    const now = new Date()
+    // Convertir a hora de Nueva York (ET)
+    const nyTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }))
+    const day = nyTime.getDay() // 0=Dom, 6=Sab
+    const hours = nyTime.getHours()
+    const minutes = nyTime.getMinutes()
+    const timeInMinutes = hours * 60 + minutes
+
+    // Mercado cerrado fines de semana
+    if (day === 0 || day === 6) {
+      return { open: false, label: 'Mercado cerrado', sub: 'Reabre el lunes 9:30 AM ET', color: '#E24B4A' }
+    }
+
+    // Pre-market: 4:00 AM - 9:30 AM ET
+    if (timeInMinutes >= 240 && timeInMinutes < 570) {
+      return { open: false, label: 'Pre-market', sub: 'Abre a las 9:30 AM ET', color: '#F59E0B' }
+    }
+
+    // Mercado abierto: 9:30 AM - 4:00 PM ET
+    if (timeInMinutes >= 570 && timeInMinutes < 960) {
+      return { open: true, label: 'Mercado abierto', sub: 'NYSE · Nasdaq · Futuros', color: '#1D9E75' }
+    }
+
+    // After-hours: 4:00 PM - 8:00 PM ET
+    if (timeInMinutes >= 960 && timeInMinutes < 1200) {
+      return { open: false, label: 'After-hours', sub: 'Cierra a las 8:00 PM ET', color: '#F59E0B' }
+    }
+
+    // Mercado cerrado
+    return { open: false, label: 'Mercado cerrado', sub: 'Reabre a las 4:00 AM ET', color: '#E24B4A' }
+  }
+
+  const [marketStatus, setMarketStatus] = useState(getMarketStatus())
+
+  useEffect(() => {
+    // Actualizar cada minuto
+    const interval = setInterval(() => {
+      setMarketStatus(getMarketStatus())
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
   const userName = userStats?.userName || 'Usuario';
 
   return (
@@ -92,16 +135,20 @@ export default function DashboardPage() {
             <p className="text-gray-400">Martes 28 abril, 2026</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="px-4 py-2 bg-green-900/30 border border-green-800/50 rounded-full text-green-400 text-sm font-medium flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              Mercado abierto
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#0d1f14', border: `0.5px solid ${marketStatus.color}`, borderRadius: '20px', padding: '5px 12px' }}>
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: marketStatus.color, animation: marketStatus.open ? 'pulse 2s infinite' : 'none' }} />
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '500', color: marketStatus.color }}>{marketStatus.label}</div>
+                <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)' }}>{marketStatus.sub}</div>
+              </div>
             </div>
-            <div className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-full text-gray-300 text-sm font-medium">
-              NQ 21,430
-            </div>
-            <div className="px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-full text-gray-300 text-sm font-medium">
-              MNQ 2,143
-            </div>
+
+            <style>{`
+              @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.4; }
+              }
+            `}</style>
           </div>
         </header>
 
