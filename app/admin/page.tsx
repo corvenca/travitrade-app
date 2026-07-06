@@ -8,6 +8,9 @@ export default function AdminPage() {
   const [users, setUsers] = useState<any[]>([])
   const [activity, setActivity] = useState<any[]>([])
   const [activeSection, setActiveSection] = useState('dashboard')
+  const [pendingPlans, setPendingPlans] = useState<Record<number, string>>({})
+  const [saving, setSaving] = useState<Record<number, boolean>>({})
+  const [saved, setSaved] = useState<Record<number, boolean>>({})
 
   useEffect(() => {
     fetch('/api/admin/stats').then(r => r.json()).then(setStats)
@@ -103,7 +106,7 @@ export default function AdminPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
             <thead>
               <tr>
-                {['Usuario', 'Email', 'País', 'Plan', 'Registro', 'Acción'].map(h => (
+                {['Usuario', 'Email', 'País', 'Registro', 'Plan / Acción'].map(h => (
                   <th key={h} style={{ padding: '8px', textAlign: 'left', color: 'rgba(159,225,203,0.4)', fontSize: '10px', letterSpacing: '1px', borderBottom: '0.5px solid #1a3a24' }}>{h}</th>
                 ))}
               </tr>
@@ -114,45 +117,72 @@ export default function AdminPage() {
                   <td style={{ padding: '8px', color: '#fff' }}>{u.nombre} {u.apellido}</td>
                   <td style={{ padding: '8px', color: 'rgba(159,225,203,0.6)' }}>{u.email}</td>
                   <td style={{ padding: '8px', color: 'rgba(159,225,203,0.6)' }}>{u.pais || '—'}</td>
-                  <td style={{ padding: '8px' }}>
-                    <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: u.plan === 'pro' ? '#0f2e1a' : '#1a1d24', color: u.plan === 'pro' ? '#1D9E75' : 'rgba(159,225,203,0.4)', border: `0.5px solid ${u.plan === 'pro' ? '#1D9E75' : '#2a2d34'}` }}>
-                      {u.plan?.toUpperCase() || 'FREE'}
-                    </span>
-                  </td>
                   <td style={{ padding: '8px', color: 'rgba(159,225,203,0.4)' }}>{new Date(u.created_at).toLocaleDateString('es-ES')}</td>
                   <td style={{ padding: '8px' }}>
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <span style={{
-                        fontSize: '10px', padding: '2px 8px', borderRadius: '20px',
-                        background: u.plan === 'pro' ? '#0f2e1a' : '#1a1d24',
-                        color: u.plan === 'pro' ? '#1D9E75' : 'rgba(159,225,203,0.4)',
-                        border: `0.5px solid ${u.plan === 'pro' ? '#1D9E75' : '#2a2d34'}`
-                      }}>
-                        {u.plan?.toUpperCase() || 'FREE'}
-                      </span>
-                      <button
-                        onClick={async () => {
-                          const newPlan = u.plan === 'pro' ? 'free' : 'pro'
-                          await fetch(`/api/admin/users/${u.id}/plan`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ plan: newPlan })
-                          })
-                          fetch('/api/admin/users').then(r => r.json()).then(d => setUsers(d.users || []))
+                      <select
+                        value={pendingPlans[u.id] ?? u.plan ?? 'free'}
+                        onChange={e => {
+                          setPendingPlans(prev => ({ ...prev, [u.id]: e.target.value }))
+                          setSaved(prev => ({ ...prev, [u.id]: false }))
                         }}
                         style={{
-                          fontSize: '10px',
-                          padding: '3px 10px',
-                          borderRadius: '20px',
-                          border: `0.5px solid ${u.plan === 'pro' ? '#E24B4A' : '#1D9E75'}`,
-                          background: 'transparent',
-                          color: u.plan === 'pro' ? '#E24B4A' : '#1D9E75',
-                          cursor: 'pointer',
-                          fontWeight: '500'
+                          background: '#0a1a0f',
+                          border: `0.5px solid ${pendingPlans[u.id] && pendingPlans[u.id] !== u.plan ? '#F59E0B' : '#1a3a24'}`,
+                          borderRadius: '6px',
+                          padding: '4px 8px',
+                          color: '#9FE1CB',
+                          fontSize: '12px',
+                          cursor: 'pointer'
                         }}
                       >
-                        {u.plan === 'pro' ? '→ Free' : '→ Pro'}
-                      </button>
+                        <option value="free">Free</option>
+                        <option value="pro">Pro</option>
+                      </select>
+
+                      {pendingPlans[u.id] && pendingPlans[u.id] !== u.plan && !saved[u.id] && (
+                        <button
+                          onClick={async () => {
+                            setSaving(prev => ({ ...prev, [u.id]: true }))
+                            try {
+                              await fetch(`/api/admin/users/${u.id}/plan`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ plan: pendingPlans[u.id] })
+                              })
+                              setSaved(prev => ({ ...prev, [u.id]: true }))
+                              setPendingPlans(prev => {
+                                const next = { ...prev }
+                                delete next[u.id]
+                                return next
+                              })
+                              fetch('/api/admin/users').then(r => r.json()).then(d => setUsers(d.users || []))
+                            } catch {
+                              alert('Error al guardar')
+                            } finally {
+                              setSaving(prev => ({ ...prev, [u.id]: false }))
+                            }
+                          }}
+                          disabled={saving[u.id]}
+                          style={{
+                            fontSize: '11px',
+                            padding: '4px 12px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            background: '#1D9E75',
+                            color: '#fff',
+                            cursor: 'pointer',
+                            fontWeight: '500',
+                            opacity: saving[u.id] ? 0.6 : 1
+                          }}
+                        >
+                          {saving[u.id] ? 'Guardando...' : 'Guardar'}
+                        </button>
+                      )}
+
+                      {saved[u.id] && (
+                        <span style={{ fontSize: '11px', color: '#1D9E75' }}>✓ Guardado</span>
+                      )}
                     </div>
                   </td>
                 </tr>
