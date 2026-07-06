@@ -121,17 +121,39 @@ export default function AdminPage() {
                   </td>
                   <td style={{ padding: '8px', color: 'rgba(159,225,203,0.4)' }}>{new Date(u.created_at).toLocaleDateString('es-ES')}</td>
                   <td style={{ padding: '8px' }}>
-                    <select
-                      defaultValue={u.plan || 'free'}
-                      onChange={async (e) => {
-                        await fetch(`/api/admin/users/${u.id}/plan`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: e.target.value }) })
-                        fetch('/api/admin/users').then(r => r.json()).then(d => setUsers(d.users || []))
-                      }}
-                      style={{ background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '4px', padding: '3px 6px', color: '#9FE1CB', fontSize: '11px' }}
-                    >
-                      <option value="free">Free</option>
-                      <option value="pro">Pro</option>
-                    </select>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <span style={{
+                        fontSize: '10px', padding: '2px 8px', borderRadius: '20px',
+                        background: u.plan === 'pro' ? '#0f2e1a' : '#1a1d24',
+                        color: u.plan === 'pro' ? '#1D9E75' : 'rgba(159,225,203,0.4)',
+                        border: `0.5px solid ${u.plan === 'pro' ? '#1D9E75' : '#2a2d34'}`
+                      }}>
+                        {u.plan?.toUpperCase() || 'FREE'}
+                      </span>
+                      <button
+                        onClick={async () => {
+                          const newPlan = u.plan === 'pro' ? 'free' : 'pro'
+                          await fetch(`/api/admin/users/${u.id}/plan`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ plan: newPlan })
+                          })
+                          fetch('/api/admin/users').then(r => r.json()).then(d => setUsers(d.users || []))
+                        }}
+                        style={{
+                          fontSize: '10px',
+                          padding: '3px 10px',
+                          borderRadius: '20px',
+                          border: `0.5px solid ${u.plan === 'pro' ? '#E24B4A' : '#1D9E75'}`,
+                          background: 'transparent',
+                          color: u.plan === 'pro' ? '#E24B4A' : '#1D9E75',
+                          cursor: 'pointer',
+                          fontWeight: '500'
+                        }}
+                      >
+                        {u.plan === 'pro' ? '→ Free' : '→ Pro'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
