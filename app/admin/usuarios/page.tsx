@@ -232,13 +232,16 @@ export default function UsuariosPage() {
                         style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '6px', color: '#9FE1CB', fontSize: '11px', cursor: 'pointer' }}>
                         Ver
                       </button>
+                      {/* Botón Stats */}
                       <button onClick={() => handleViewJournalStats(u)}
                         style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #3b82f6', borderRadius: '6px', color: '#3b82f6', fontSize: '11px', cursor: 'pointer' }}>
                         📊 Stats
                       </button>
+
+                      {/* Botón Ver Diario */}
                       <button onClick={() => handleImpersonate(u.id)}
-                        style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #F59E0B', borderRadius: '6px', color: '#F59E0B', fontSize: '11px', cursor: 'pointer' }}>
-                        👁 Ver Journals
+                        style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #1D9E75', borderRadius: '6px', color: '#1D9E75', fontSize: '11px', cursor: 'pointer' }}>
+                        📖 Ver Diario
                       </button>
                       {u.blocked ? (
                         <button onClick={() => handleBlock(u.id, false)}
