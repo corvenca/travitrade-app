@@ -236,10 +236,6 @@ export default function UsuariosPage() {
                         style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #3b82f6', borderRadius: '6px', color: '#3b82f6', fontSize: '11px', cursor: 'pointer' }}>
                         📊 Stats
                       </button>
-                      <button onClick={() => handleImpersonate(u.id)}
-                        style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #F59E0B', borderRadius: '6px', color: '#F59E0B', fontSize: '11px', cursor: 'pointer' }}>
-                        👁 Ver
-                      </button>
                       <button onClick={() => handleImpersonateApp(u.id)}
                         style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #1D9E75', borderRadius: '6px', color: '#1D9E75', fontSize: '11px', cursor: 'pointer' }}>
                         Ver App
