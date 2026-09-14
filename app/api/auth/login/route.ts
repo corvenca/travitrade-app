@@ -26,10 +26,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Cuenta desactivada' }, { status: 403 });
     }
 
+    if (user.blocked) {
+      return NextResponse.json({ success: false, error: 'Tu cuenta ha sido suspendida. Contacta al soporte.' }, { status: 403 });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return NextResponse.json({ success: false, error: 'Credenciales inválidas' }, { status: 401 });
     }
+
+    await pool.query('UPDATE users SET last_login = NOW() WHERE id = $1', [user.id]);
 
     const isAdmin = user.email === 'altuveronalbis@gmail.com';
     const token = jwt.sign(
