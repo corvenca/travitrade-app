@@ -15,6 +15,10 @@ export default function UsuariosPage() {
   const [success, setSuccess] = useState('')
   const [newUser, setNewUser] = useState({ nombre: '', apellido: '', email: '', telefono: '', pais: '', username: '', password: '', plan: 'free' })
 
+  const [journalStats, setJournalStats] = useState<any>(null)
+  const [loadingStats, setLoadingStats] = useState(false)
+  const [showJournalModal, setShowJournalModal] = useState<any>(null)
+
   useEffect(() => { fetchUsers() }, [])
 
   const fetchUsers = async () => {
@@ -66,6 +70,19 @@ export default function UsuariosPage() {
     } catch {
       alert('Error de conexión')
     }
+  }
+
+  const handleViewJournalStats = async (user: any) => {
+    setShowJournalModal(user)
+    setLoadingStats(true)
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/journal-stats`)
+      const data = await res.json()
+      setJournalStats(data)
+    } catch {
+      setJournalStats(null)
+    }
+    setLoadingStats(false)
   }
 
   const handleCreateUser = async () => {
@@ -215,9 +232,13 @@ export default function UsuariosPage() {
                         style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '6px', color: '#9FE1CB', fontSize: '11px', cursor: 'pointer' }}>
                         Ver
                       </button>
-                      <button onClick={() => handleImpersonate(u.id)}
+                      <button onClick={() => handleViewJournalStats(u)}
                         style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #3b82f6', borderRadius: '6px', color: '#3b82f6', fontSize: '11px', cursor: 'pointer' }}>
-                        Ver Journals
+                        📊 Stats
+                      </button>
+                      <button onClick={() => handleImpersonate(u.id)}
+                        style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #F59E0B', borderRadius: '6px', color: '#F59E0B', fontSize: '11px', cursor: 'pointer' }}>
+                        👁 Ver
                       </button>
                       <button onClick={() => handleImpersonateApp(u.id)}
                         style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #1D9E75', borderRadius: '6px', color: '#1D9E75', fontSize: '11px', cursor: 'pointer' }}>
@@ -360,6 +381,157 @@ export default function UsuariosPage() {
                 Cancelar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ESTADÍSTICAS JOURNALS */}
+      {showJournalModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+          <div style={{ background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: '500', color: '#fff' }}>Journals — {showJournalModal.nombre} {showJournalModal.apellido}</div>
+                <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', marginTop: '2px' }}>{showJournalModal.email}</div>
+              </div>
+              <button onClick={() => { setShowJournalModal(null); setJournalStats(null) }}
+                style={{ background: 'transparent', border: 'none', color: 'rgba(159,225,203,0.5)', fontSize: '22px', cursor: 'pointer' }}>×</button>
+            </div>
+
+            {loadingStats ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(159,225,203,0.4)' }}>Cargando datos...</div>
+            ) : !journalStats ? (
+              <div style={{ textAlign: 'center', padding: '40px', color: 'rgba(159,225,203,0.4)' }}>No hay datos disponibles</div>
+            ) : (
+              <>
+                {/* MÉTRICAS GLOBALES */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '20px' }}>
+                  {[
+                    { label: 'TOTAL OPS', value: journalStats.globalStats?.total_ops || 0, color: '#fff' },
+                    { label: 'WIN RATE', value: `${journalStats.globalStats?.winRate || 0}%`, color: parseFloat(journalStats.globalStats?.winRate || '0') >= 50 ? '#1D9E75' : '#E24B4A' },
+                    { label: 'PNL TOTAL', value: `$${parseFloat(journalStats.globalStats?.total_pnl || 0).toFixed(2)}`, color: parseFloat(journalStats.globalStats?.total_pnl || '0') >= 0 ? '#1D9E75' : '#E24B4A' },
+                    { label: 'CUENTAS', value: journalStats.accounts?.length || 0, color: '#3b82f6' },
+                  ].map(m => (
+                    <div key={m.label} style={{ background: '#0a1a0f', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1px', marginBottom: '6px' }}>{m.label}</div>
+                      <div style={{ fontSize: '18px', fontWeight: '500', color: m.color }}>{m.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* DISTRIBUCIÓN */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '20px' }}>
+                  {[
+                    { label: 'GANADAS', value: journalStats.globalStats?.wins || 0, color: '#1D9E75' },
+                    { label: 'PERDIDAS', value: journalStats.globalStats?.losses || 0, color: '#E24B4A' },
+                    { label: 'BREAK EVEN', value: journalStats.globalStats?.be || 0, color: '#F59E0B' },
+                  ].map(m => (
+                    <div key={m.label} style={{ background: '#0a1a0f', borderRadius: '8px', padding: '10px', textAlign: 'center', border: `0.5px solid ${m.color}22` }}>
+                      <div style={{ fontSize: '9px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1px', marginBottom: '4px' }}>{m.label}</div>
+                      <div style={{ fontSize: '20px', fontWeight: '500', color: m.color }}>{m.value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CUENTAS */}
+                {journalStats.accountStats && journalStats.accountStats.length > 0 && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '10px' }}>CUENTAS DE TRADING</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {journalStats.accountStats.map((acc: any) => {
+                        const ops = parseInt(acc.total_ops || '0', 10)
+                        const wins = parseInt(acc.wins || '0', 10)
+                        const wr = ops > 0 ? ((wins / ops) * 100).toFixed(1) : 0
+                        return (
+                          <div key={acc.id} style={{ background: '#0a1a0f', borderRadius: '8px', padding: '12px 14px', border: '0.5px solid #1a3a24' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <div>
+                                <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{acc.name}</div>
+                                <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)' }}>{acc.broker || '—'} · {acc.type}</div>
+                              </div>
+                              <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: '14px', fontWeight: '500', color: parseFloat(acc.total_pnl || 0) >= 0 ? '#1D9E75' : '#E24B4A' }}>
+                                  {parseFloat(acc.total_pnl || 0) >= 0 ? '+' : ''}${parseFloat(acc.total_pnl || 0).toFixed(2)}
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)' }}>Win Rate: {wr}%</div>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', fontSize: '11px' }}>
+                              <span style={{ color: 'rgba(159,225,203,0.6)' }}>{acc.total_ops} ops</span>
+                              <span style={{ color: '#1D9E75' }}>{acc.wins}G</span>
+                              <span style={{ color: '#E24B4A' }}>{acc.losses}P</span>
+                              <span style={{ color: '#F59E0B' }}>{acc.be}BE</span>
+                              {acc.last_operation && <span style={{ color: 'rgba(159,225,203,0.4)' }}>Última: {acc.last_operation}</span>}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ÚLTIMAS OPERACIONES */}
+                {journalStats.recentOps && journalStats.recentOps.length > 0 && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '10px' }}>ÚLTIMAS OPERACIONES</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                      <thead>
+                        <tr>
+                          {['Fecha', 'Símbolo', 'Dirección', 'Setup', 'PNL', 'Resultado'].map(h => (
+                            <th key={h} style={{ padding: '6px 8px', textAlign: 'left', color: 'rgba(159,225,203,0.4)', fontSize: '10px', letterSpacing: '1px', borderBottom: '0.5px solid #1a3a24' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {journalStats.recentOps.map((op: any) => (
+                          <tr key={op.id} style={{ borderBottom: '0.5px solid #1a3a24' }}>
+                            <td style={{ padding: '6px 8px', color: 'rgba(159,225,203,0.6)' }}>{op.date}</td>
+                            <td style={{ padding: '6px 8px', color: '#fff', fontWeight: '500' }}>{op.symbol}</td>
+                            <td style={{ padding: '6px 8px', color: op.side === 'LONG' ? '#1D9E75' : '#E24B4A' }}>{op.side}</td>
+                            <td style={{ padding: '6px 8px', color: 'rgba(159,225,203,0.6)' }}>{op.setup_name || '—'}</td>
+                            <td style={{ padding: '6px 8px', color: parseFloat(op.pnl || 0) >= 0 ? '#1D9E75' : '#E24B4A', fontWeight: '500' }}>
+                              {parseFloat(op.pnl || 0) >= 0 ? '+' : ''}${parseFloat(op.pnl || 0).toFixed(2)}
+                            </td>
+                            <td style={{ padding: '6px 8px' }}>
+                              <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '20px',
+                                background: op.result_type === 'GANADA' ? 'rgba(29,158,117,0.15)' : op.result_type === 'PERDIDA' ? 'rgba(226,75,74,0.15)' : 'rgba(245,158,11,0.15)',
+                                color: op.result_type === 'GANADA' ? '#1D9E75' : op.result_type === 'PERDIDA' ? '#E24B4A' : '#F59E0B' }}>
+                                {op.result_type === 'GANADA' ? '✓' : op.result_type === 'PERDIDA' ? '✗' : '—'} {op.result_type}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* ACTIVIDAD MENSUAL */}
+                {journalStats.monthlyActivity && journalStats.monthlyActivity.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '10px' }}>ACTIVIDAD MENSUAL</div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {journalStats.monthlyActivity.map((m: any) => (
+                        <div key={m.month} style={{ background: '#0a1a0f', borderRadius: '8px', padding: '10px 14px', border: '0.5px solid #1a3a24', textAlign: 'center', minWidth: '80px' }}>
+                          <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)', marginBottom: '4px' }}>{m.month}</div>
+                          <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{m.ops} ops</div>
+                          <div style={{ fontSize: '11px', color: parseFloat(m.pnl || 0) >= 0 ? '#1D9E75' : '#E24B4A' }}>
+                            {parseFloat(m.pnl || 0) >= 0 ? '+' : ''}${parseFloat(m.pnl || 0).toFixed(0)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(journalStats.globalStats?.total_ops === '0' || journalStats.globalStats?.total_ops === 0) ? (
+                  <div style={{ textAlign: 'center', padding: '20px', color: 'rgba(159,225,203,0.4)', fontSize: '13px' }}>
+                    Este usuario aún no tiene operaciones registradas
+                  </div>
+                ) : null}
+              </>
+            )}
           </div>
         </div>
       )}
