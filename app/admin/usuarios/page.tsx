@@ -54,6 +54,20 @@ export default function UsuariosPage() {
     }
   }
 
+  const handleImpersonateApp = async (userId: number) => {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/impersonate`, { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        window.open(`/auth/impersonate?token=${data.token}`, '_blank')
+      } else {
+        alert('Error: ' + data.error)
+      }
+    } catch {
+      alert('Error de conexión')
+    }
+  }
+
   const handleCreateUser = async () => {
     if (!newUser.nombre || !newUser.email || !newUser.password) { alert('Nombre, email y contraseña son obligatorios'); return }
     setSaving(true)
@@ -204,6 +218,10 @@ export default function UsuariosPage() {
                       <button onClick={() => handleImpersonate(u.id)}
                         style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #3b82f6', borderRadius: '6px', color: '#3b82f6', fontSize: '11px', cursor: 'pointer' }}>
                         Ver Journals
+                      </button>
+                      <button onClick={() => handleImpersonateApp(u.id)}
+                        style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #1D9E75', borderRadius: '6px', color: '#1D9E75', fontSize: '11px', cursor: 'pointer' }}>
+                        Ver App
                       </button>
                       {u.blocked ? (
                         <button onClick={() => handleBlock(u.id, false)}

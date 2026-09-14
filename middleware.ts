@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get('travitrade_session')
   const { pathname } = request.nextUrl
 
-  const publicRoutes = ['/login', '/registro']
+  const publicRoutes = ['/login', '/registro', '/auth/impersonate']
   const isPublic = publicRoutes.some(r => pathname.startsWith(r))
 
   if (!token && !isPublic) {
