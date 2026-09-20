@@ -281,65 +281,54 @@ export default function DashboardPage() {
 
         {/* TUS HERRAMIENTAS */}
         <h3 className="text-lg font-bold mb-6">TUS HERRAMIENTAS</h3>
-        <div className="grid grid-cols-3 gap-6">
-          {/* Tool 1 */}
-          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl flex flex-col">
-            <div className="w-12 h-12 bg-[#112a18] rounded-lg flex items-center justify-center text-[#1D9E75] mb-4">
-              <BookOpen size={24} />
+        {/* Tarjetas de productos */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: '12px', marginTop: '20px' }}>
+
+          {/* Travi Journals — activo */}
+          <div style={{ background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ fontSize: '14px', fontWeight: '500', color: '#fff' }}>Travi Journals</div>
+              <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: '#0f2e1a', color: '#1D9E75', border: '0.5px solid #1D9E75' }}>Activo</span>
             </div>
-            <h4 className="text-lg font-bold mb-2">Travi Journals</h4>
-            <p className="text-gray-400 text-sm mb-6 flex-1">
-              Registra y analiza cada operación. Patrones y disciplina
-            </p>
-            <a 
-              href="https://journals.travitrade.com" 
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'block',
-                width: '100%',
-                padding: '10px',
-                background: '#1D9E75',
-                color: '#fff',
-                borderRadius: '8px',
-                textAlign: 'center',
-                fontSize: '14px',
-                fontWeight: '500',
-                textDecoration: 'none',
-                marginTop: 'auto'
-              }}
-            >
-              Ingresar
+            <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', lineHeight: '1.5' }}>
+              Bitácora de trading profesional. Registra operaciones, análisis de setups y reportes.
+            </div>
+            <a href="https://journals.travitrade.com"
+              style={{ display: 'block', padding: '9px', background: '#1D9E75', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '500', textDecoration: 'none', textAlign: 'center', marginTop: 'auto' }}>
+              Ingresar →
             </a>
           </div>
-          
-          {/* Tool 2 */}
-          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl flex flex-col opacity-80">
-            <div className="w-12 h-12 bg-[#112a18] rounded-lg flex items-center justify-center text-[#1D9E75] mb-4">
-              <PieChart size={24} />
+
+          {/* Travi Portafolio — próximamente */}
+          <div style={{ background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px', opacity: 0.6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ fontSize: '14px', fontWeight: '500', color: '#fff' }}>Travi Portafolio</div>
+              <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: '#1a1d24', color: 'rgba(159,225,203,0.4)', border: '0.5px solid #2a2d34' }}>Próximamente</span>
             </div>
-            <h4 className="text-lg font-bold mb-2">Travi Portafolio</h4>
-            <p className="text-gray-400 text-sm mb-6 flex-1">
-              Rastrea inversiones y el rendimiento de tu portafolio
-            </p>
-            <button className="w-full py-2.5 bg-gray-800 text-gray-500 font-medium rounded-lg cursor-not-allowed">
-              Próximamente
+            <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.4)', lineHeight: '1.5' }}>
+              Rastreador de inversiones en tiempo real. Gestiona tu portafolio de acciones, ETFs y más.
+            </div>
+            <button disabled
+              style={{ padding: '9px', background: '#1a1d24', border: '0.5px solid #2a2d34', borderRadius: '8px', color: 'rgba(159,225,203,0.3)', fontSize: '13px', cursor: 'not-allowed', marginTop: 'auto' }}>
+              🔒 Próximamente
             </button>
           </div>
 
-          {/* Tool 3 */}
-          <div className="bg-[#0d1f14] border border-gray-800 p-6 rounded-xl flex flex-col opacity-80">
-            <div className="w-12 h-12 bg-[#112a18] rounded-lg flex items-center justify-center text-[#1D9E75] mb-4">
-              <Wallet size={24} />
+          {/* Travi Finance — próximamente */}
+          <div style={{ background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px', opacity: 0.6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ fontSize: '14px', fontWeight: '500', color: '#fff' }}>Travi Finance</div>
+              <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: '#1a1d24', color: 'rgba(159,225,203,0.4)', border: '0.5px solid #2a2d34' }}>Próximamente</span>
             </div>
-            <h4 className="text-lg font-bold mb-2">Travi Finance</h4>
-            <p className="text-gray-400 text-sm mb-6 flex-1">
-              Controla gastos, metas y presupuestos personales
-            </p>
-            <button className="w-full py-2.5 bg-gray-800 text-gray-500 font-medium rounded-lg cursor-not-allowed">
-              Próximamente
+            <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.4)', lineHeight: '1.5' }}>
+              Control de finanzas personales. Presupuestos, metas de ahorro y análisis de gastos.
+            </div>
+            <button disabled
+              style={{ padding: '9px', background: '#1a1d24', border: '0.5px solid #2a2d34', borderRadius: '8px', color: 'rgba(159,225,203,0.3)', fontSize: '13px', cursor: 'not-allowed', marginTop: 'auto' }}>
+              🔒 Próximamente
             </button>
           </div>
+
         </div>
         </div>
       </main>
