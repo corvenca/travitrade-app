@@ -14,12 +14,23 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'travitrade_secret_2025') as any
     if (!decoded.isAdmin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
 
-    const { plan } = await request.json()
-    console.log('Actualizando plan:', { id, plan })
+    const { plan: inputPlan, billingCycle: inputBillingCycle } = await request.json()
+    console.log('Actualizando plan:', { id, inputPlan, inputBillingCycle })
+
+    let finalPlan = inputPlan
+    let billingCycle = inputBillingCycle || 'monthly'
+
+    if (inputPlan === 'pro_monthly') {
+      finalPlan = 'pro'
+      billingCycle = 'monthly'
+    } else if (inputPlan === 'pro_annual') {
+      finalPlan = 'pro'
+      billingCycle = 'annual'
+    }
 
     const result = await pool.query(
-      'UPDATE users SET plan = $1 WHERE id = $2 RETURNING id, email, plan',
-      [plan, id]
+      'UPDATE users SET plan = $1, billing_cycle = $2 WHERE id = $3 RETURNING id, email, plan, billing_cycle',
+      [finalPlan, billingCycle, id]
     )
 
     console.log('Resultado:', result.rows)

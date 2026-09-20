@@ -205,7 +205,7 @@ export default function UsuariosPage() {
                   <td style={{ padding: '10px 12px', color: 'rgba(159,225,203,0.7)' }}>{u.email}</td>
                   <td style={{ padding: '10px 12px', color: 'rgba(159,225,203,0.6)' }}>{u.pais || '—'}</td>
                   <td style={{ padding: '10px 12px' }}>
-                    <select value={u.plan || 'free'}
+                    <select value={u.plan === 'pro' ? (u.billing_cycle === 'annual' ? 'pro_annual' : 'pro_monthly') : (u.plan || 'free')}
                       onChange={async (e) => {
                         const newPlan = e.target.value
                         await fetch(`/api/admin/users/${u.id}/plan`, {
@@ -226,7 +226,8 @@ export default function UsuariosPage() {
                       }}>
                       <option value="free">Free</option>
                       <option value="free_full">⭐ Free Completo</option>
-                      <option value="pro">Pro</option>
+                      <option value="pro_monthly">Pro Mensual — $5.99/mes</option>
+                      <option value="pro_annual">Pro Anual — $50/año ($4.16/mes)</option>
                     </select>
                   </td>
                   <td style={{ padding: '10px 12px' }}>

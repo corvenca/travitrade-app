@@ -9,11 +9,14 @@ const key = new TextEncoder().encode(secretKey);
 
 export async function POST(req: Request) {
   try {
-    const { nombre, apellido, email, telefono, pais, username, password } = await req.json();
+    const { nombre, apellido, email, telefono, pais, username, password, plan: reqPlan, billingCycle: reqBillingCycle } = await req.json();
 
     if (!nombre || !apellido || !email || !telefono || !pais || !username || !password) {
       return NextResponse.json({ success: false, error: 'Faltan campos requeridos' }, { status: 400 });
     }
+
+    const plan = reqPlan || 'free';
+    const billingCycle = reqBillingCycle || 'monthly';
 
     // Verificar email duplicado
     const emailExists = await pool.query(
@@ -45,9 +48,9 @@ export async function POST(req: Request) {
 
     // Insert user
     const insertResult = await pool.query(
-      `INSERT INTO users (nombre, apellido, email, telefono, pais, username, password_hash, plan) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'free') RETURNING id, nombre, email, plan`,
-      [nombre, apellido, email, telefono, pais, username, passwordHash]
+      `INSERT INTO users (nombre, apellido, email, telefono, pais, username, password_hash, plan, billing_cycle) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, nombre, email, plan, billing_cycle`,
+      [nombre, apellido, email, telefono, pais, username, passwordHash, plan, billingCycle]
     );
 
     const user = insertResult.rows[0];

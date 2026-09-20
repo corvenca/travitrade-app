@@ -250,6 +250,7 @@ export default function RegistroPage() {
     }
     return 'free';
   });
+  const [billingCycle, setBillingCycle] = useState('monthly');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -283,6 +284,7 @@ export default function RegistroPage() {
         username: formData.username,
         password: formData.password,
         plan: selectedPlan,
+        billingCycle,
       };
 
       const res = await fetch('/api/auth/registro', {
@@ -513,6 +515,20 @@ export default function RegistroPage() {
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '10px', display: 'block' }}>SELECCIONA TU PLAN</label>
+              
+              {/* Toggle de facturación */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <button type="button" onClick={() => setBillingCycle('monthly')}
+                  style={{ flex: 1, padding: '8px', borderRadius: '8px', border: `0.5px solid ${billingCycle === 'monthly' ? '#1D9E75' : '#1a3a24'}`, background: billingCycle === 'monthly' ? '#0f2e1a' : 'transparent', color: billingCycle === 'monthly' ? '#1D9E75' : 'rgba(159,225,203,0.5)', fontSize: '12px', cursor: 'pointer' }}>
+                  Mensual — $5.99/mes
+                </button>
+                <button type="button" onClick={() => setBillingCycle('annual')}
+                  style={{ flex: 1, padding: '8px', borderRadius: '8px', border: `0.5px solid ${billingCycle === 'annual' ? '#1D9E75' : '#1a3a24'}`, background: billingCycle === 'annual' ? '#0f2e1a' : 'transparent', color: billingCycle === 'annual' ? '#1D9E75' : 'rgba(159,225,203,0.5)', fontSize: '12px', cursor: 'pointer', position: 'relative' }}>
+                  Anual — $4.16/mes
+                  <span style={{ position: 'absolute', top: '-8px', right: '8px', background: '#1D9E75', color: '#fff', fontSize: '9px', padding: '1px 6px', borderRadius: '20px' }}>AHORRA $21.88</span>
+                </button>
+              </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {PLANS.map(plan => (
                   <div

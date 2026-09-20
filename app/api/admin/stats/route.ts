@@ -16,6 +16,16 @@ export async function GET() {
     const freeUsers = await pool.query("SELECT COUNT(*) FROM users WHERE plan = 'free' OR plan IS NULL")
     const newThisMonth = await pool.query("SELECT COUNT(*) FROM users WHERE created_at >= date_trunc('month', NOW())")
 
+    // Calcular ingresos considerando usuarios mensuales y anuales
+    const proMonthlyRes = await pool.query("SELECT COUNT(*) FROM users WHERE plan = 'pro' AND (billing_cycle = 'monthly' OR billing_cycle IS NULL)")
+    const proAnnualRes = await pool.query("SELECT COUNT(*) FROM users WHERE plan = 'pro' AND billing_cycle = 'annual'")
+
+    const proMonthly = parseInt(proMonthlyRes.rows[0].count) || 0
+    const proAnnual = parseInt(proAnnualRes.rows[0].count) || 0
+
+    // Ingresos mensuales estimados
+    const monthlyRevenue = ((proMonthly * 5.99) + (proAnnual * 50 / 12)).toFixed(2)
+
     const total = parseInt(totalUsers.rows[0].count)
     const pro = parseInt(proUsers.rows[0].count)
     const free = parseInt(freeUsers.rows[0].count)
@@ -26,7 +36,7 @@ export async function GET() {
       proUsers: pro,
       freeUsers: free,
       newThisMonth: newMonth,
-      monthlyRevenue: pro * 5.99,
+      monthlyRevenue,
       conversionRate: total > 0 ? ((pro / total) * 100).toFixed(1) : 0
     })
   } catch (error) {
