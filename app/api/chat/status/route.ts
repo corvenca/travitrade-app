@@ -17,12 +17,13 @@ export async function GET(request: Request) {
     const sessionId = searchParams.get('sessionId')
     if (!sessionId) return NextResponse.json({ agentActive: false }, { headers: corsHeaders })
 
-    // Verificar si agente está activo
-    const agentCheck = await pool.query(
-      'SELECT agent_active FROM chat_sessions WHERE session_id = $1 AND agent_active = true LIMIT 1',
+    // Verificar si agente está activo y si bot está habilitado
+    const sessionData = await pool.query(
+      'SELECT agent_active, bot_enabled FROM chat_sessions WHERE session_id = $1 LIMIT 1',
       [sessionId]
     )
-    const agentActive = agentCheck.rows.length > 0
+    const agentActive = sessionData.rows[0]?.agent_active === true
+    const botEnabled = sessionData.rows[0]?.bot_enabled !== false
 
     // Verificar último mensaje del agente
     const lastAgentMsg = await pool.query(
@@ -58,6 +59,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       agentActive,
+      botEnabled,
       waitingTooLong
     }, { headers: corsHeaders })
   } catch (error: any) {

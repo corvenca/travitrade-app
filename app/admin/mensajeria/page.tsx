@@ -23,6 +23,7 @@ export default function MensajeriaPage() {
   const [sending, setSending] = useState(false)
   const [replySuccess, setReplySuccess] = useState('')
   const [agentActive, setAgentActive] = useState(false)
+  const [botEnabled, setBotEnabled] = useState(true)
   const [suggestedReplies, setSuggestedReplies] = useState<string[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
 
@@ -40,7 +41,10 @@ export default function MensajeriaPage() {
     fetchMessages(selectedChat.session_id)
     fetch(`/api/chat/status?sessionId=${selectedChat.session_id}`)
       .then(r => r.json())
-      .then(data => setAgentActive(data.agentActive))
+      .then(data => {
+        setAgentActive(data.agentActive)
+        setBotEnabled(data.botEnabled !== false)
+      })
       .catch(() => {})
 
     const interval = setInterval(() => {
@@ -127,13 +131,14 @@ export default function MensajeriaPage() {
 
   const toggleBot = async () => {
     if (!selectedChat) return
-    const newState = !agentActive
+    const newBotEnabled = !botEnabled
     await fetch(`/api/admin/chats/${selectedChat.session_id}/toggle-bot`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agentActive: newState })
+      body: JSON.stringify({ botEnabled: newBotEnabled })
     })
-    setAgentActive(newState)
+    setBotEnabled(newBotEnabled)
+    setAgentActive(!newBotEnabled)
   }
 
   const filteredChats = chats
@@ -285,16 +290,22 @@ export default function MensajeriaPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button onClick={toggleBot}
                       style={{
-                        padding: '5px 12px',
-                        background: agentActive ? '#0f2e1a' : '#1a1d24',
-                        border: `0.5px solid ${agentActive ? '#1D9E75' : '#2a2d34'}`,
+                        padding: '6px 14px',
+                        background: botEnabled ? 'rgba(29,158,117,0.1)' : 'rgba(226,75,74,0.1)',
+                        border: `0.5px solid ${botEnabled ? '#1D9E75' : '#E24B4A'}`,
                         borderRadius: '20px',
-                        color: agentActive ? '#1D9E75' : 'rgba(159,225,203,0.4)',
+                        color: botEnabled ? '#1D9E75' : '#E24B4A',
                         fontSize: '11px',
                         cursor: 'pointer',
-                        fontWeight: '500'
+                        fontWeight: '500',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
                       }}>
-                      {agentActive ? '🟢 Agente activo — clic para reactivar bot' : '🤖 Bot activo — clic para tomar control'}
+                      {botEnabled ? '🤖 Bot activo' : '👤 Agente activo'}
+                      <span style={{ fontSize: '10px', opacity: 0.7 }}>
+                        {botEnabled ? '→ clic para tomar control' : '→ clic para activar bot'}
+                      </span>
                     </button>
                     <span style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)' }}>Estado:</span>
                     <select value={selectedChat.status || 'potencial'}

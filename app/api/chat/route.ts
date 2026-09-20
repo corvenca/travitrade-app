@@ -52,18 +52,7 @@ export async function POST(request: Request) {
 
     const { messages, sessionId, userEmail } = body
 
-    let activeSessionId = sessionId
-    if (userEmail) {
-      const existingSession = await pool.query(
-        `SELECT session_id FROM chat_sessions
-         WHERE user_email = $1
-         ORDER BY created_at DESC LIMIT 1`,
-        [userEmail]
-      )
-      if (existingSession.rows.length > 0) {
-        activeSessionId = existingSession.rows[0].session_id
-      }
-    }
+    const activeSessionId = sessionId
 
     const validMessages = messages.filter((m: any) => m.content && m.content.trim().length > 0)
     if (validMessages.length === 0) {
@@ -91,7 +80,7 @@ export async function POST(request: Request) {
 
     if (!userData && userEmail) {
       const prevChat = await pool.query(`
-        SELECT DISTINCT user_name, user_email, user_pais, user_telefono
+        SELECT user_name, user_email, user_pais, user_telefono
         FROM chat_sessions
         WHERE user_email = $1
         ORDER BY created_at DESC
@@ -102,7 +91,7 @@ export async function POST(request: Request) {
 
     if (!userData && !previousLeadData) {
       const prevBySession = await pool.query(`
-        SELECT DISTINCT user_name, user_email, user_pais, user_telefono
+        SELECT user_name, user_email, user_pais, user_telefono
         FROM chat_sessions
         WHERE user_name IS NOT NULL AND user_email IS NOT NULL
           AND session_id != $1
@@ -114,28 +103,32 @@ export async function POST(request: Request) {
       }
     }
 
-    // Verificar si el agente ya tomó control de esta sesión
+    // Verificar si el bot está habilitado para esta sesión
+    let botEnabled = true
     let agentIsActive = false
     try {
-      const agentCheck = await pool.query(
-        'SELECT agent_active FROM chat_sessions WHERE session_id = $1 AND agent_active = true LIMIT 1',
-        [activeSessionId]
+      const sessionCheck = await pool.query(
+        'SELECT bot_enabled, agent_active FROM chat_sessions WHERE session_id = $1 LIMIT 1',
+        [sessionId]
       )
-      agentIsActive = agentCheck.rows.length > 0
+      if (sessionCheck.rows.length > 0) {
+        botEnabled = sessionCheck.rows[0].bot_enabled !== false
+        agentIsActive = sessionCheck.rows[0].agent_active === true
+      }
     } catch {}
 
     const lastUserMsg = messages[messages.length - 1]
 
-    // Si el agente está activo, no responder con IA
-    if (agentIsActive) {
+    // Si agente activo o bot deshabilitado, solo guardar mensaje
+    if (agentIsActive || !botEnabled) {
       await pool.query(
-        'INSERT INTO chat_sessions (session_id, user_email, user_name, user_pais, user_telefono, user_plan, role, content, status, agent_active) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,true)',
-        [activeSessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', 'user', lastUserMsg.content, 'requiere_agente']
+        'INSERT INTO chat_sessions (session_id, user_email, user_name, role, content, status, agent_active) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+        [sessionId, userEmail || null, userName || 'Visitante', 'user', lastUserMsg.content, 'requiere_agente', true]
       )
       return NextResponse.json({
         reply: null,
         agentActive: true,
-        sessionId: activeSessionId
+        sessionId
       }, { headers: corsHeaders })
     }
 
