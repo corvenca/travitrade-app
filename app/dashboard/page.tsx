@@ -138,10 +138,6 @@ export default function DashboardPage() {
               <span>Perfil</span>
             </div>
           </Link>
-          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors">
-            <Settings size={20} />
-            <span>Ajustes</span>
-          </div>
           <LogoutButton />
         </div>
       </aside>
