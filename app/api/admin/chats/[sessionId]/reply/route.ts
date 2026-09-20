@@ -29,9 +29,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ ses
       [sessionId, client?.user_email, client?.user_name, client?.user_pais, client?.user_telefono, content]
     )
 
-    // Actualizar status de la conversación
+    // Actualizar status de la conversación y marcar agente activo
     await pool.query(
-      "UPDATE chat_sessions SET status = 'respondido' WHERE session_id = $1",
+      `UPDATE chat_sessions SET agent_active = true, status = 'respondido' WHERE session_id = $1`,
       [sessionId]
     )
 

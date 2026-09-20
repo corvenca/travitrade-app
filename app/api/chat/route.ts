@@ -95,6 +95,31 @@ export async function POST(request: Request) {
       }
     }
 
+    // Verificar si el agente ya tomó control de esta sesión
+    let agentIsActive = false
+    try {
+      const agentCheck = await pool.query(
+        'SELECT agent_active FROM chat_sessions WHERE session_id = $1 AND agent_active = true LIMIT 1',
+        [sessionId]
+      )
+      agentIsActive = agentCheck.rows.length > 0
+    } catch {}
+
+    const lastUserMsg = messages[messages.length - 1]
+
+    // Si el agente está activo, no responder con IA
+    if (agentIsActive) {
+      await pool.query(
+        'INSERT INTO chat_sessions (session_id, user_email, user_name, user_pais, user_telefono, user_plan, role, content, status, agent_active) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,true)',
+        [sessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', 'user', lastUserMsg.content, 'requiere_agente']
+      )
+      return NextResponse.json({
+        reply: null,
+        agentActive: true,
+        sessionId
+      }, { headers: corsHeaders })
+    }
+
     // Inyectar contexto del usuario si está registrado
     const userContext = userName
       ? `\nEl usuario registrado se llama ${userName} y tiene plan ${userData?.plan || 'free'}. Salúdalo por su nombre.`
@@ -162,7 +187,6 @@ export async function POST(request: Request) {
     else if (lastMsg.includes('no me interesa') || lastMsg.includes('no gracias')) status = 'sin_interes'
     else if (lastMsg.includes('precio') || lastMsg.includes('plan') || lastMsg.includes('suscrib') || lastMsg.includes('comprar') || lastMsg.includes('pagar')) status = 'interes_alto'
 
-    const lastUserMsg = messages[messages.length - 1]
     await pool.query(
       'INSERT INTO chat_sessions (session_id, user_email, user_name, user_pais, user_telefono, user_plan, role, content, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
       [sessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', lastUserMsg.role, lastUserMsg.content, status]

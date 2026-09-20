@@ -58,6 +58,7 @@ export default function MensajeriaPage() {
   const [sending, setSending] = useState(false)
   const [replySuccess, setReplySuccess] = useState('')
   const [showQuickReplies, setShowQuickReplies] = useState(false)
+  const [agentActive, setAgentActive] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -67,8 +68,25 @@ export default function MensajeriaPage() {
   }, [])
 
   useEffect(() => {
-    if (selectedChat) fetchMessages(selectedChat.session_id)
+    if (selectedChat) {
+      fetchMessages(selectedChat.session_id)
+      fetch(`/api/chat/status?sessionId=${selectedChat.session_id}`)
+        .then(r => r.json())
+        .then(data => setAgentActive(data.agentActive))
+        .catch(() => {})
+    }
   }, [selectedChat])
+
+  const toggleBot = async () => {
+    if (!selectedChat) return
+    const newState = !agentActive
+    await fetch(`/api/admin/chats/${selectedChat.session_id}/toggle-bot`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agentActive: newState })
+    })
+    setAgentActive(newState)
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -263,6 +281,19 @@ export default function MensajeriaPage() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button onClick={toggleBot}
+                      style={{
+                        padding: '5px 12px',
+                        background: agentActive ? '#0f2e1a' : '#1a1d24',
+                        border: `0.5px solid ${agentActive ? '#1D9E75' : '#2a2d34'}`,
+                        borderRadius: '20px',
+                        color: agentActive ? '#1D9E75' : 'rgba(159,225,203,0.4)',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        fontWeight: '500'
+                      }}>
+                      {agentActive ? '🟢 Agente activo — clic para reactivar bot' : '🤖 Bot activo — clic para tomar control'}
+                    </button>
                     <span style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)' }}>Estado:</span>
                     <select value={selectedChat.status || 'potencial'}
                       onChange={e => updateStatus(selectedChat.session_id, e.target.value)}
