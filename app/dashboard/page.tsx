@@ -215,6 +215,7 @@ export default function DashboardPage() {
             </p>
             <a 
               href="https://journals.travitrade.com" 
+              target="_blank"
               rel="noopener noreferrer"
               style={{
                 display: 'block',

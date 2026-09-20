@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { Pool } from 'pg'
+import { sendAdminNotification } from '@/lib/mailer'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,14 +51,47 @@ export async function POST(request: Request) {
       return NextResponse.json({ reply: '¿En qué puedo ayudarte? 😊' }, { headers: corsHeaders })
     }
 
-    // Buscar si el usuario está registrado
+    // Buscar si el usuario está registrado o tiene historial previo
     let userName = null
     let userData: any = null
+    let previousLeadData: any = null
+
     if (userEmail) {
       const result = await pool.query('SELECT nombre, apellido, email, telefono, pais, plan FROM users WHERE email = $1', [userEmail])
       if (result.rows.length > 0) {
         userData = result.rows[0]
         userName = userData.nombre
+        previousLeadData = {
+          user_name: userData.nombre,
+          user_email: userData.email,
+          user_pais: userData.pais,
+          user_telefono: userData.telefono
+        }
+      }
+    }
+
+    if (!userData && userEmail) {
+      const prevChat = await pool.query(`
+        SELECT DISTINCT user_name, user_email, user_pais, user_telefono
+        FROM chat_sessions
+        WHERE user_email = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+      `, [userEmail])
+      if (prevChat.rows.length > 0) previousLeadData = prevChat.rows[0]
+    }
+
+    if (!userData && !previousLeadData) {
+      const prevBySession = await pool.query(`
+        SELECT DISTINCT user_name, user_email, user_pais, user_telefono
+        FROM chat_sessions
+        WHERE user_name IS NOT NULL AND user_email IS NOT NULL
+          AND session_id != $1
+        ORDER BY created_at DESC
+        LIMIT 1
+      `, [sessionId])
+      if (prevBySession.rows.length > 0 && prevBySession.rows[0].user_email === userEmail) {
+        previousLeadData = prevBySession.rows[0]
       }
     }
 
@@ -130,7 +164,30 @@ export async function POST(request: Request) {
       [sessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', 'assistant', reply, status]
     )
 
-    return NextResponse.json({ reply, sessionId, userName }, { headers: corsHeaders })
+    const isFirstMessage = messages.length === 1
+    const wantsAgent = lastUserMsg.content.toLowerCase().includes('agente') ||
+      lastUserMsg.content.toLowerCase().includes('soporte')
+
+    if (isFirstMessage || wantsAgent) {
+      sendAdminNotification({
+        from: userEmail || 'visitante@web',
+        subject: wantsAgent ? '🔔 Solicitud de agente humano' : '💬 Nueva conversación iniciada',
+        message: lastUserMsg.content,
+        clientName: userName || 'Visitante',
+        clientEmail: userEmail || undefined,
+        clientPhone: userData?.telefono || undefined,
+        clientCountry: userData?.pais || undefined,
+        source: userEmail ? 'app' : 'web',
+        sessionId
+      }).catch(() => {})
+    }
+
+    return NextResponse.json({
+      reply,
+      sessionId,
+      userName,
+      previousLeadData: previousLeadData || null
+    }, { headers: corsHeaders })
   } catch (error: any) {
     console.error('Chat error:', error)
     return NextResponse.json({ reply: 'Ups, algo salió mal 😅 Intenta de nuevo.', error: error.message }, { status: 500, headers: corsHeaders })

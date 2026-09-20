@@ -5,8 +5,8 @@ import jwt from 'jsonwebtoken'
 
 export async function GET() {
   try {
-    const cookieStore = cookies()
-    const token = cookieStore.get('token')
+    const cookieStore = await cookies()
+    const token = cookieStore.get('travitrade_session') || cookieStore.get('token')
     if (!token) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'travitrade_secret_2025') as any
     if (!decoded.isAdmin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })

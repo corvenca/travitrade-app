@@ -69,6 +69,24 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       [id]
     )
 
+    // Setups del usuario con estadísticas
+    const bySetupDirection = await pool.query(`
+      SELECT
+        s.name as setup_name,
+        s.color as setup_color,
+        s.direction as setup_direction,
+        COUNT(o.id) as total,
+        COALESCE(SUM(CASE WHEN o.result_type = 'GANADA' THEN 1 ELSE 0 END), 0) as wins,
+        COALESCE(SUM(CASE WHEN o.result_type = 'PERDIDA' THEN 1 ELSE 0 END), 0) as losses,
+        COALESCE(SUM(CASE WHEN o.result_type = 'BREAK_EVEN' THEN 1 ELSE 0 END), 0) as be,
+        COALESCE(SUM(o.pnl), 0) as total_pnl
+      FROM trading_setups s
+      LEFT JOIN trading_operations o ON s.id = o.setup_id AND o.user_id = $1
+      WHERE s.user_id = $1
+      GROUP BY s.name, s.color, s.direction
+      ORDER BY total DESC
+    `, [id])
+
     // Actividad por mes (últimos 6 meses)
     const monthlyActivity = await pool.query(`
       SELECT
@@ -95,6 +113,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       globalStats: { ...stats, winRate },
       recentOps: recentOps.rows,
       setups: setupsRes.rows,
+      bySetupDirection: bySetupDirection.rows,
       monthlyActivity: monthlyActivity.rows
     })
   } catch (error: any) {

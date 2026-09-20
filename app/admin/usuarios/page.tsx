@@ -18,6 +18,22 @@ export default function UsuariosPage() {
   const [journalStats, setJournalStats] = useState<any>(null)
   const [loadingStats, setLoadingStats] = useState(false)
   const [showJournalModal, setShowJournalModal] = useState<any>(null)
+  const [selectedSetupAdmin, setSelectedSetupAdmin] = useState<string | null>(null)
+  const [setupOpsAdmin, setSetupOpsAdmin] = useState<any[]>([])
+  const [loadingSetupOpsAdmin, setLoadingSetupOpsAdmin] = useState(false)
+
+  const handleViewSetupOps = async (setupName: string, userId: number) => {
+    setSelectedSetupAdmin(setupName)
+    setLoadingSetupOpsAdmin(true)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/setup-ops?setup=${encodeURIComponent(setupName)}`)
+      const data = await res.json()
+      setSetupOpsAdmin(data.operations || [])
+    } catch {
+      setSetupOpsAdmin([])
+    }
+    setLoadingSetupOpsAdmin(false)
+  }
 
   useEffect(() => { fetchUsers() }, [])
 
@@ -44,33 +60,6 @@ export default function UsuariosPage() {
     setTimeout(() => setSuccess(''), 3000)
   }
 
-  const handleImpersonate = async (userId: number) => {
-    try {
-      const res = await fetch(`/api/admin/users/${userId}/impersonate`, { method: 'POST' })
-      const data = await res.json()
-      if (res.ok) {
-        window.open(data.journalsUrl, '_blank')
-      } else {
-        alert('Error: ' + data.error)
-      }
-    } catch {
-      alert('Error de conexión')
-    }
-  }
-
-  const handleImpersonateApp = async (userId: number) => {
-    try {
-      const res = await fetch(`/api/admin/users/${userId}/impersonate`, { method: 'POST' })
-      const data = await res.json()
-      if (res.ok) {
-        window.open(`/auth/impersonate?token=${data.token}`, '_blank')
-      } else {
-        alert('Error: ' + data.error)
-      }
-    } catch {
-      alert('Error de conexión')
-    }
-  }
 
   const handleViewJournalStats = async (user: any) => {
     setShowJournalModal(user)
@@ -226,23 +215,22 @@ export default function UsuariosPage() {
                   </td>
                   <td style={{ padding: '10px 12px', color: 'rgba(159,225,203,0.5)', fontSize: '11px' }}>{getLastLogin(u.last_login)}</td>
                   <td style={{ padding: '10px 12px', color: 'rgba(159,225,203,0.4)', fontSize: '11px' }}>{new Date(u.created_at).toLocaleDateString('es-ES')}</td>
-                  <td style={{ padding: '10px 12px' }}>
+                  <td style={{ padding: '8px 12px' }}>
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+
+                      {/* Ver perfil */}
                       <button onClick={() => setSelectedUser(u)}
                         style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '6px', color: '#9FE1CB', fontSize: '11px', cursor: 'pointer' }}>
                         Ver
                       </button>
-                      {/* Botón Stats */}
+
+                      {/* Stats Journals */}
                       <button onClick={() => handleViewJournalStats(u)}
                         style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #3b82f6', borderRadius: '6px', color: '#3b82f6', fontSize: '11px', cursor: 'pointer' }}>
                         📊 Stats
                       </button>
 
-                      {/* Botón Ver Diario */}
-                      <button onClick={() => handleImpersonate(u.id)}
-                        style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #1D9E75', borderRadius: '6px', color: '#1D9E75', fontSize: '11px', cursor: 'pointer' }}>
-                        📖 Ver Diario
-                      </button>
+                      {/* Bloquear / Habilitar */}
                       {u.blocked ? (
                         <button onClick={() => handleBlock(u.id, false)}
                           style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #1D9E75', borderRadius: '6px', color: '#1D9E75', fontSize: '11px', cursor: 'pointer' }}>
@@ -254,6 +242,7 @@ export default function UsuariosPage() {
                           Bloquear
                         </button>
                       )}
+
                     </div>
                   </td>
                 </tr>
@@ -394,7 +383,7 @@ export default function UsuariosPage() {
                 <div style={{ fontSize: '16px', fontWeight: '500', color: '#fff' }}>Journals — {showJournalModal.nombre} {showJournalModal.apellido}</div>
                 <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', marginTop: '2px' }}>{showJournalModal.email}</div>
               </div>
-              <button onClick={() => { setShowJournalModal(null); setJournalStats(null) }}
+              <button onClick={() => { setShowJournalModal(null); setJournalStats(null); setSelectedSetupAdmin(null); setSetupOpsAdmin([]) }}
                 style={{ background: 'transparent', border: 'none', color: 'rgba(159,225,203,0.5)', fontSize: '22px', cursor: 'pointer' }}>×</button>
             </div>
 
@@ -432,6 +421,114 @@ export default function UsuariosPage() {
                     </div>
                   ))}
                 </div>
+
+                {/* ESTADÍSTICAS POR SETUP */}
+                {journalStats.bySetupDirection && journalStats.bySetupDirection.length > 0 && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '10px' }}>ESTADÍSTICAS POR SETUP</div>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                      <thead>
+                        <tr>
+                          {['Setup', 'Ops', 'Wins', 'Losses', 'BE', 'Win Rate', 'PNL Total'].map(h => (
+                            <th key={h} style={{ padding: '6px 8px', textAlign: 'left', color: 'rgba(159,225,203,0.4)', fontSize: '10px', letterSpacing: '1px', borderBottom: '0.5px solid #1a3a24' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {journalStats.bySetupDirection.map((s: any, i: number) => {
+                          const total = parseInt(s.total || '0', 10)
+                          const wins = parseInt(s.wins || '0', 10)
+                          const wr = total > 0 ? ((wins / total) * 100).toFixed(1) : 0
+                          const pnl = parseFloat(s.total_pnl || '0')
+                          return (
+                            <tr key={i}
+                              onClick={() => handleViewSetupOps(s.setup_name, showJournalModal.id)}
+                              style={{ borderBottom: '0.5px solid #1a3a24', cursor: 'pointer', transition: 'background 0.15s' }}
+                              onMouseEnter={e => e.currentTarget.style.background = '#0f2a1a'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                              title="Clic para ver operaciones de este setup"
+                            >
+                              <td style={{ padding: '6px 8px', color: '#fff', fontWeight: '500' }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: s.setup_color || '#1D9E75' }} />
+                                  {s.setup_name}
+                                </span>
+                              </td>
+                              <td style={{ padding: '6px 8px', color: 'rgba(159,225,203,0.6)' }}>{s.total}</td>
+                              <td style={{ padding: '6px 8px', color: '#1D9E75' }}>{s.wins}</td>
+                              <td style={{ padding: '6px 8px', color: '#E24B4A' }}>{s.losses}</td>
+                              <td style={{ padding: '6px 8px', color: '#F59E0B' }}>{s.be}</td>
+                              <td style={{ padding: '6px 8px', color: parseFloat(wr as string) >= 50 ? '#1D9E75' : '#E24B4A' }}>{wr}%</td>
+                              <td style={{ padding: '6px 8px', color: pnl >= 0 ? '#1D9E75' : '#E24B4A', fontWeight: '500' }}>
+                                {pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* VISTA OPERACIONES DEL SETUP SELECCIONADO */}
+                {selectedSetupAdmin && (
+                  <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                      <button onClick={() => { setSelectedSetupAdmin(null); setSetupOpsAdmin([]) }}
+                        style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '6px', color: 'rgba(159,225,203,0.6)', fontSize: '12px', cursor: 'pointer' }}>
+                        ← Volver
+                      </button>
+                      <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{selectedSetupAdmin}</div>
+                      <span style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)' }}>{setupOpsAdmin.length} operaciones</span>
+                    </div>
+
+                    {loadingSetupOpsAdmin ? (
+                      <div style={{ textAlign: 'center', padding: '24px', color: 'rgba(159,225,203,0.4)' }}>Cargando...</div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
+                        {setupOpsAdmin.map((op: any) => (
+                          <div key={op.id} style={{ background: '#0a1a0f', borderRadius: '10px', padding: '12px 14px', border: '0.5px solid #1a3a24', display: 'grid', gridTemplateColumns: op.image_url ? '1fr 130px' : '1fr', gap: '12px', alignItems: 'start' }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{op.symbol}</span>
+                                <span style={{ fontSize: '11px', padding: '1px 8px', borderRadius: '20px',
+                                  background: op.side === 'LONG' ? 'rgba(29,158,117,0.15)' : 'rgba(226,75,74,0.15)',
+                                  color: op.side === 'LONG' ? '#1D9E75' : '#E24B4A',
+                                  border: `0.5px solid ${op.side === 'LONG' ? '#1D9E75' : '#E24B4A'}` }}>
+                                  {op.side === 'LONG' ? '↑ LONG' : '↓ SHORT'}
+                                </span>
+                                <span style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)' }}>{op.date}</span>
+                                {op.sesion && <span style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)' }}>🕐 {op.sesion}</span>}
+                                <span style={{ fontSize: '10px', padding: '1px 8px', borderRadius: '20px',
+                                  background: op.result_type === 'GANADA' ? 'rgba(29,158,117,0.15)' : op.result_type === 'PERDIDA' ? 'rgba(226,75,74,0.15)' : 'rgba(245,158,11,0.15)',
+                                  color: op.result_type === 'GANADA' ? '#1D9E75' : op.result_type === 'PERDIDA' ? '#E24B4A' : '#F59E0B',
+                                  border: `0.5px solid ${op.result_type === 'GANADA' ? '#1D9E75' : op.result_type === 'PERDIDA' ? '#E24B4A' : '#F59E0B'}` }}>
+                                  {op.result_type === 'GANADA' ? '✓ TP' : op.result_type === 'PERDIDA' ? '✗ SL' : '— BE'}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '15px', fontWeight: '500', color: parseFloat(op.pnl) >= 0 ? '#1D9E75' : '#E24B4A' }}>
+                                  {parseFloat(op.pnl) >= 0 ? '+' : ''}${parseFloat(op.pnl).toFixed(2)}
+                                </span>
+                                {op.contratos && <span style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)' }}>{op.contratos} ctto{op.contratos > 1 ? 's' : ''}</span>}
+                                {op.account_name && <span style={{ fontSize: '11px', color: 'rgba(159,225,203,0.3)' }}>📁 {op.account_name}</span>}
+                              </div>
+                              {op.notes && <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', marginTop: '6px', fontStyle: 'italic' }}>"{op.notes}"</div>}
+                            </div>
+                            {op.image_url && (
+                              <a href={op.image_url} target="_blank" rel="noopener noreferrer">
+                                <img src={op.image_url} alt="Captura"
+                                  style={{ width: '130px', height: '85px', objectFit: 'cover', borderRadius: '8px', border: '0.5px solid #1a3a24', cursor: 'pointer', display: 'block' }}
+                                  onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                />
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* CUENTAS */}
                 {journalStats.accountStats && journalStats.accountStats.length > 0 && (

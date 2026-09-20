@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken'
 export async function GET() {
   try {
     const cookieStore = await cookies()
-    const token = cookieStore.get('travitrade_session')
+    const token = cookieStore.get('travitrade_session') || cookieStore.get('token')
     if (!token) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'travitrade_secret_2025') as any
     if (!decoded.isAdmin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
@@ -38,7 +38,8 @@ export async function GET() {
         status,
         created_at,
         (SELECT COUNT(*) FROM chat_sessions cs2 WHERE cs2.session_id = chat_sessions.session_id) as message_count,
-        (SELECT content FROM chat_sessions cs3 WHERE cs3.session_id = chat_sessions.session_id ORDER BY created_at DESC LIMIT 1) as last_message
+        (SELECT content FROM chat_sessions cs3 WHERE cs3.session_id = chat_sessions.session_id AND cs3.role = 'user' ORDER BY cs3.created_at DESC LIMIT 1) as last_user_message,
+        (SELECT created_at FROM chat_sessions cs4 WHERE cs4.session_id = chat_sessions.session_id ORDER BY cs4.created_at DESC LIMIT 1) as last_activity
       FROM chat_sessions
       ORDER BY session_id, created_at DESC
     `)
