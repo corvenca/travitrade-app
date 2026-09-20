@@ -166,7 +166,7 @@ export default function UsuariosPage() {
             placeholder="Buscar por nombre, email o usuario..."
             style={{ flex: 1, minWidth: '200px', background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '8px 12px', color: '#9FE1CB', fontSize: '13px', outline: 'none' }} />
           {[
-            { key: 'filterPlan', value: filterPlan, setter: setFilterPlan, options: [{ v: 'todos', l: 'Todos los planes' }, { v: 'free', l: 'Free' }, { v: 'pro', l: 'Pro' }] },
+            { key: 'filterPlan', value: filterPlan, setter: setFilterPlan, options: [{ v: 'todos', l: 'Todos los planes' }, { v: 'free', l: 'Free' }, { v: 'free_full', l: 'Free Completo' }, { v: 'pro', l: 'Pro' }] },
             { key: 'filterStatus', value: filterStatus, setter: setFilterStatus, options: [{ v: 'todos', l: 'Todos' }, { v: 'activo', l: 'Activos' }, { v: 'bloqueado', l: 'Bloqueados' }] },
           ].map(f => (
             <select key={f.key} value={f.value} onChange={e => f.setter(e.target.value)}
@@ -205,9 +205,29 @@ export default function UsuariosPage() {
                   <td style={{ padding: '10px 12px', color: 'rgba(159,225,203,0.7)' }}>{u.email}</td>
                   <td style={{ padding: '10px 12px', color: 'rgba(159,225,203,0.6)' }}>{u.pais || '—'}</td>
                   <td style={{ padding: '10px 12px' }}>
-                    <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: u.plan === 'pro' ? '#0f2e1a' : '#1a1d24', color: u.plan === 'pro' ? '#1D9E75' : 'rgba(159,225,203,0.4)', border: `0.5px solid ${u.plan === 'pro' ? '#1D9E75' : '#2a2d34'}` }}>
-                      {u.plan?.toUpperCase() || 'FREE'}
-                    </span>
+                    <select value={u.plan || 'free'}
+                      onChange={async (e) => {
+                        const newPlan = e.target.value
+                        await fetch(`/api/admin/users/${u.id}/plan`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ plan: newPlan })
+                        })
+                        fetchUsers()
+                      }}
+                      style={{
+                        background: u.plan === 'pro' ? '#0f2e1a' : u.plan === 'free_full' ? '#1a1a0f' : '#0a1a0f',
+                        border: `0.5px solid ${u.plan === 'pro' ? '#1D9E75' : u.plan === 'free_full' ? '#F59E0B' : '#1a3a24'}`,
+                        borderRadius: '6px',
+                        padding: '4px 8px',
+                        color: u.plan === 'pro' ? '#1D9E75' : u.plan === 'free_full' ? '#F59E0B' : '#9FE1CB',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}>
+                      <option value="free">Free</option>
+                      <option value="free_full">⭐ Free Completo</option>
+                      <option value="pro">Pro</option>
+                    </select>
                   </td>
                   <td style={{ padding: '10px 12px' }}>
                     <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: u.blocked ? 'rgba(226,75,74,0.15)' : 'rgba(29,158,117,0.1)', color: u.blocked ? '#E24B4A' : '#1D9E75', border: `0.5px solid ${u.blocked ? '#E24B4A' : '#1D9E75'}` }}>
@@ -355,8 +375,9 @@ export default function UsuariosPage() {
                 <label style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>PLAN</label>
                 <select value={newUser.plan} onChange={e => setNewUser({...newUser, plan: e.target.value})}
                   style={{ width: '100%', background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '9px 12px', color: '#9FE1CB', fontSize: '13px' }}>
-                  <option value="free">Free</option>
-                  <option value="pro">Pro</option>
+                  <option value="free">Free — Limitado</option>
+                  <option value="free_full">⭐ Free Completo — Acceso Pro sin costo</option>
+                  <option value="pro">Pro — $5.99/mes</option>
                 </select>
               </div>
             </div>

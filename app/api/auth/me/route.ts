@@ -28,13 +28,19 @@ export async function GET() {
 
     const user = userResult.rows[0];
 
+    const isAdmin = user.email === 'altuveronalbis@gmail.com'
+    const hasFullAccess = user.plan === 'pro' || user.plan === 'free_full' || isAdmin
+    const displayPlan = user.plan === 'free_full' ? 'pro' : user.plan
+
     const userData = {
       success: true,
       user: {
         id: user.id,
         nombre: user.nombre,
         email: user.email,
-        plan: user.plan
+        plan: isAdmin ? 'pro' : (user.plan || 'free'),
+        hasFullAccess,
+        displayPlan
       }
     };
 
