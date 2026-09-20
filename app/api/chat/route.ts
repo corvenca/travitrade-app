@@ -44,7 +44,13 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: process
 
 export async function POST(request: Request) {
   try {
-    const { messages, sessionId, userEmail } = await request.json()
+    const body = await request.json()
+    console.log('CHAT POST body keys:', Object.keys(body))
+    console.log('Messages count:', body.messages?.length)
+    console.log('Session:', body.sessionId)
+    console.log('Email:', body.userEmail)
+
+    const { messages, sessionId, userEmail } = body
 
     let activeSessionId = sessionId
     if (userEmail) {
@@ -234,7 +240,10 @@ export async function POST(request: Request) {
       previousLeadData: previousLeadData || null
     }, { headers: corsHeaders })
   } catch (error: any) {
-    console.error('Chat error:', error)
-    return NextResponse.json({ reply: 'Ups, algo salió mal 😅 Intenta de nuevo.', error: error.message }, { status: 500, headers: corsHeaders })
+    console.error('CHAT ERROR COMPLETO:', error.message, error.stack)
+    return NextResponse.json(
+      { reply: 'Ups, algo salió mal 😅 Intenta de nuevo.', error: error.message },
+      { status: 500, headers: corsHeaders }
+    )
   }
 }
