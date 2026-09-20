@@ -12,6 +12,41 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
   visitante: { label: 'Visitante', color: 'rgba(159,225,203,0.4)', bg: '#1a1d24', border: '#2a2d34' },
 }
 
+const QUICK_REPLIES = [
+  {
+    label: 'Saludo inicial',
+    text: '¡Hola! 👋 Soy José, del equipo de atención al cliente de Travitrade. Estoy aquí para ayudarte. ¿En qué puedo servirte hoy?'
+  },
+  {
+    label: 'Bienvenida Pro',
+    text: '¡Bienvenido a Travitrade! 🎉 Mi nombre es José y seré tu asistente personal. Cuéntame, ¿qué necesitas?'
+  },
+  {
+    label: 'En seguida te ayudo',
+    text: 'Gracias por contactarnos. Estoy revisando tu consulta y en un momento te doy una respuesta. 🙏'
+  },
+  {
+    label: 'Información de planes',
+    text: 'Claro, con gusto te explico nuestros planes. Tenemos el Plan Free (gratuito) y el Plan Pro por solo $5.99/mes con acceso completo a todas las funciones. ¿Te gustaría más información sobre alguno en particular?'
+  },
+  {
+    label: 'Registro',
+    text: 'Puedes registrarte en app.travitrade.com/registro — el proceso toma menos de 2 minutos y el plan Free no requiere tarjeta de crédito. 😊'
+  },
+  {
+    label: 'Soporte técnico',
+    text: 'Entiendo tu inconveniente. Por favor cuéntame con más detalle qué está pasando y con gusto lo resolvemos juntos. 🛠️'
+  },
+  {
+    label: 'Cierre conversación',
+    text: '¡Fue un placer ayudarte! Si tienes alguna otra consulta no dudes en escribirnos. ¡Éxito en tu trading! 📈'
+  },
+  {
+    label: 'No disponible ahora',
+    text: 'Gracias por escribirnos. En este momento nuestro equipo no está disponible pero te responderemos a la brevedad. También puedes enviarnos un email a soporte@travitrade.com 📧'
+  },
+]
+
 export default function MensajeriaPage() {
   const [chats, setChats] = useState<any[]>([])
   const [selectedChat, setSelectedChat] = useState<any>(null)
@@ -22,6 +57,7 @@ export default function MensajeriaPage() {
   const [replyText, setReplyText] = useState('')
   const [sending, setSending] = useState(false)
   const [replySuccess, setReplySuccess] = useState('')
+  const [showQuickReplies, setShowQuickReplies] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -288,27 +324,70 @@ export default function MensajeriaPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* RESPONDER */}
-              <div style={{ padding: '14px 20px', borderTop: '0.5px solid #1a3a24', background: '#0d1f14' }}>
-                {replySuccess && (
-                  <div style={{ fontSize: '12px', color: '#1D9E75', marginBottom: '8px' }}>{replySuccess}</div>
-                )}
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
-                  <textarea
-                    value={replyText}
-                    onChange={e => setReplyText(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReply() } }}
-                    placeholder="Escribe tu respuesta... (Enter para enviar, Shift+Enter para nueva línea)"
-                    rows={2}
-                    style={{ flex: 1, background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '10px 12px', color: '#9FE1CB', fontSize: '13px', resize: 'none', outline: 'none' }}
-                  />
-                  <button onClick={handleReply} disabled={!replyText.trim() || sending}
-                    style={{ padding: '10px 20px', background: replyText.trim() ? '#1D9E75' : '#1a3a24', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '500', cursor: replyText.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap', opacity: sending ? 0.6 : 1 }}>
-                    {sending ? 'Enviando...' : 'Enviar →'}
+              {/* RESPUESTAS RÁPIDAS Y RESPONDER */}
+              <div style={{ borderTop: '0.5px solid #1a3a24', background: '#0d1f14' }}>
+
+                {/* RESPUESTAS RÁPIDAS */}
+                <div style={{ padding: '10px 20px 0' }}>
+                  <button
+                    onClick={() => setShowQuickReplies(!showQuickReplies)}
+                    style={{
+                      padding: '5px 12px', background: 'transparent',
+                      border: `0.5px solid ${showQuickReplies ? '#1D9E75' : '#1a3a24'}`,
+                      borderRadius: '20px', color: showQuickReplies ? '#1D9E75' : 'rgba(159,225,203,0.5)',
+                      fontSize: '12px', cursor: 'pointer', marginBottom: showQuickReplies ? '10px' : '0'
+                    }}>
+                    ⚡ Respuestas rápidas {showQuickReplies ? '▲' : '▼'}
                   </button>
+
+                  {showQuickReplies && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
+                      {QUICK_REPLIES.map((qr, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setReplyText(qr.text)
+                            setShowQuickReplies(false)
+                          }}
+                          style={{
+                            padding: '8px 12px', background: '#0a1a0f',
+                            border: '0.5px solid #1a3a24', borderRadius: '8px',
+                            color: '#9FE1CB', fontSize: '12px', cursor: 'pointer',
+                            textAlign: 'left', lineHeight: '1.4',
+                            transition: 'border-color 0.15s'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.borderColor = '#1D9E75'}
+                          onMouseLeave={e => e.currentTarget.style.borderColor = '#1a3a24'}
+                        >
+                          <div style={{ fontSize: '10px', color: '#1D9E75', marginBottom: '3px', fontWeight: '500' }}>{qr.label}</div>
+                          <div style={{ color: 'rgba(159,225,203,0.7)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{qr.text}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.3)', marginTop: '6px' }}>
-                  La respuesta se enviará al chat y por email a {selectedChat.user_email || 'no disponible'}
+
+                <div style={{ padding: '14px 20px' }}>
+                  {replySuccess && (
+                    <div style={{ fontSize: '12px', color: '#1D9E75', marginBottom: '8px' }}>{replySuccess}</div>
+                  )}
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+                    <textarea
+                      value={replyText}
+                      onChange={e => setReplyText(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReply() } }}
+                      placeholder="Escribe tu respuesta... (Enter para enviar, Shift+Enter para nueva línea)"
+                      rows={2}
+                      style={{ flex: 1, background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '10px 12px', color: '#9FE1CB', fontSize: '13px', resize: 'none', outline: 'none' }}
+                    />
+                    <button onClick={handleReply} disabled={!replyText.trim() || sending}
+                      style={{ padding: '10px 20px', background: replyText.trim() ? '#1D9E75' : '#1a3a24', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '500', cursor: replyText.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap', opacity: sending ? 0.6 : 1 }}>
+                      {sending ? 'Enviando...' : 'Enviar →'}
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.3)', marginTop: '6px' }}>
+                    La respuesta se enviará al chat y por email a {selectedChat.user_email || 'no disponible'}
+                  </div>
                 </div>
               </div>
             </>
