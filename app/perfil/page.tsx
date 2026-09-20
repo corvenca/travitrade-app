@@ -168,6 +168,11 @@ export default function PerfilPage() {
 
         <div className="mt-auto">
           <p className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">CUENTA</p>
+          <Link href="/upgrade">
+            <div className="flex items-center gap-3 px-4 py-2.5 text-[#1D9E75] hover:bg-[#0f2e1a] rounded-lg font-medium cursor-pointer transition-colors mb-1">
+              <span>🚀 Actualizar a Pro</span>
+            </div>
+          </Link>
           <div className="flex items-center gap-3 px-4 py-3 bg-[#112a18] rounded-lg text-[#1D9E75] font-medium cursor-pointer mb-1">
             <UserIcon size={20} />
             <span>Perfil</span>
