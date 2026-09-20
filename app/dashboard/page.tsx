@@ -109,13 +109,19 @@ export default function DashboardPage() {
             </svg>
             Travi Journals
           </SidebarLink>
-          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
-            <PieChart size={20} />
-            <span>Travi Portafolio</span>
+          <div style={{ opacity: 0.5, cursor: 'not-allowed' }} className="flex items-center justify-between px-4 py-2.5 text-gray-400 rounded-lg font-medium mb-1 text-sm">
+            <div className="flex items-center gap-2.5">
+              <PieChart size={18} />
+              <span>Travi Portafolio</span>
+            </div>
+            <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '10px', background: '#1a1d24', color: 'rgba(159,225,203,0.5)', border: '0.5px solid #2a2d34' }}>Próximamente</span>
           </div>
-          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors">
-            <Wallet size={20} />
-            <span>Travi Finance</span>
+          <div style={{ opacity: 0.5, cursor: 'not-allowed' }} className="flex items-center justify-between px-4 py-2.5 text-gray-400 rounded-lg font-medium text-sm">
+            <div className="flex items-center gap-2.5">
+              <Wallet size={18} />
+              <span>Travi Finance</span>
+            </div>
+            <span style={{ fontSize: '9px', padding: '1px 6px', borderRadius: '10px', background: '#1a1d24', color: 'rgba(159,225,203,0.5)', border: '0.5px solid #2a2d34' }}>Próximamente</span>
           </div>
         </div>
 

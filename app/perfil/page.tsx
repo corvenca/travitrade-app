@@ -146,17 +146,23 @@ export default function PerfilPage() {
 
         <div className="mb-8">
           <p className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">HERRAMIENTAS</p>
-          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
+          <a href="https://journals.travitrade.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
             <BookOpen size={20} />
             <span>Travi Journals</span>
+          </a>
+          <div style={{ opacity: 0.5, cursor: 'not-allowed' }} className="flex items-center justify-between px-4 py-3 text-gray-400 rounded-lg font-medium mb-1">
+            <div className="flex items-center gap-3">
+              <PieChart size={20} />
+              <span>Travi Portafolio</span>
+            </div>
+            <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '12px', background: '#1a1d24', color: 'rgba(159,225,203,0.5)', border: '0.5px solid #2a2d34' }}>Próximamente</span>
           </div>
-          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
-            <PieChart size={20} />
-            <span>Travi Portafolio</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors">
-            <Wallet size={20} />
-            <span>Travi Finance</span>
+          <div style={{ opacity: 0.5, cursor: 'not-allowed' }} className="flex items-center justify-between px-4 py-3 text-gray-400 rounded-lg font-medium">
+            <div className="flex items-center gap-3">
+              <Wallet size={20} />
+              <span>Travi Finance</span>
+            </div>
+            <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '12px', background: '#1a1d24', color: 'rgba(159,225,203,0.5)', border: '0.5px solid #2a2d34' }}>Próximamente</span>
           </div>
         </div>
 
