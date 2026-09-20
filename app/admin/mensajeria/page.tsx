@@ -68,13 +68,19 @@ export default function MensajeriaPage() {
   }, [])
 
   useEffect(() => {
-    if (selectedChat) {
+    if (!selectedChat) return
+
+    fetchMessages(selectedChat.session_id)
+    fetch(`/api/chat/status?sessionId=${selectedChat.session_id}`)
+      .then(r => r.json())
+      .then(data => setAgentActive(data.agentActive))
+      .catch(() => {})
+
+    const interval = setInterval(() => {
       fetchMessages(selectedChat.session_id)
-      fetch(`/api/chat/status?sessionId=${selectedChat.session_id}`)
-        .then(r => r.json())
-        .then(data => setAgentActive(data.agentActive))
-        .catch(() => {})
-    }
+    }, 5000)
+
+    return () => clearInterval(interval)
   }, [selectedChat])
 
   const toggleBot = async () => {

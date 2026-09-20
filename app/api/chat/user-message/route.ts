@@ -16,8 +16,9 @@ export async function POST(request: Request) {
     const { sessionId, content, userEmail, userName } = await request.json()
 
     await pool.query(
-      `INSERT INTO chat_sessions (session_id, user_email, user_name, role, content, status)
-       VALUES ($1, $2, $3, 'user', $4, 'requiere_agente')`,
+      `INSERT INTO chat_sessions
+       (session_id, user_email, user_name, role, content, status, agent_active)
+       VALUES ($1, $2, $3, 'user', $4, 'requiere_agente', true)`,
       [sessionId, userEmail || null, userName || 'Visitante', content]
     )
 
