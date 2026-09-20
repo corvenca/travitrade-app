@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     // Buscar sesión existente
     const existing = await pool.query(
-      `SELECT DISTINCT session_id FROM chat_sessions
+      `SELECT session_id FROM chat_sessions
        WHERE user_email = $1
        ORDER BY created_at DESC LIMIT 1`,
       [email]
