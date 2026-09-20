@@ -18,11 +18,19 @@ import {
 
 export default function DashboardPage() {
   const [userStats, setUserStats] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     fetch('/api/user/summary')
       .then(r => r.json())
       .then(data => setUserStats(data))
+      .catch(() => {})
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(data => setUser(data))
       .catch(() => {})
   }, []);
 
@@ -193,6 +201,76 @@ export default function DashboardPage() {
               <span>Peor: ${userStats?.worstTrade || '0.00'}</span>
             </div>
           </div>
+        </div>
+
+        {/* PLAN ACTUAL */}
+        <div style={{ background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '12px', padding: '16px 20px', marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: user?.plan === 'pro' || user?.plan === 'free_full' ? '#0f2e1a' : '#1a1d24', border: `1px solid ${user?.plan === 'pro' || user?.plan === 'free_full' ? '#1D9E75' : '#2a2d34'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
+              {user?.plan === 'pro' || user?.plan === 'free_full' ? '⭐' : '🔓'}
+            </div>
+            <div>
+              <div style={{ fontSize: '13px', color: 'rgba(159,225,203,0.5)', marginBottom: '2px' }}>Tu plan actual</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '16px', fontWeight: '500', color: '#fff' }}>
+                  {user?.plan === 'pro' ? 'Pro Mensual'
+                    : user?.plan === 'pro_annual' ? 'Pro Anual'
+                    : user?.plan === 'free_full' ? 'Free Completo'
+                    : 'Free'}
+                </span>
+                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px',
+                  background: user?.plan === 'pro' || user?.plan === 'free_full' || user?.plan === 'pro_annual' ? '#0f2e1a' : '#1a1d24',
+                  color: user?.plan === 'pro' || user?.plan === 'free_full' || user?.plan === 'pro_annual' ? '#1D9E75' : 'rgba(159,225,203,0.4)',
+                  border: `0.5px solid ${user?.plan === 'pro' || user?.plan === 'free_full' || user?.plan === 'pro_annual' ? '#1D9E75' : '#2a2d34'}` }}>
+                  {user?.plan === 'pro' ? '$5.99/mes'
+                    : user?.plan === 'pro_annual' ? '$50/año'
+                    : user?.plan === 'free_full' ? 'Acceso completo'
+                    : 'Hasta 30 ops'}
+                </span>
+              </div>
+              {user?.plan === 'free' && (
+                <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
+                  1 cuenta · 30 operaciones · Calendario incluido · Sin reportes
+                </div>
+              )}
+              {(user?.plan === 'pro' || user?.plan === 'pro_annual') && (
+                <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
+                  Cuentas ilimitadas · Operaciones ilimitadas · Reportes PDF
+                </div>
+              )}
+              {user?.plan === 'free_full' && (
+                <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '3px' }}>
+                  Acceso completo asignado por Travitrade
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Botón según plan */}
+          {user?.plan === 'free' ? (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <a href="/upgrade"
+                style={{ padding: '9px 18px', background: '#1D9E75', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '500', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                🚀 Actualizar a Pro — $5.99/mes
+              </a>
+              <a href="/upgrade?plan=annual"
+                style={{ padding: '9px 18px', background: 'transparent', border: '0.5px solid #1D9E75', borderRadius: '8px', color: '#1D9E75', fontSize: '13px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                💰 Anual $50/año
+              </a>
+            </div>
+          ) : user?.plan === 'pro' ? (
+            <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.4)', textAlign: 'right' }}>
+              <div>✓ Plan activo</div>
+              <a href="mailto:soporte@travitrade.com?subject=Cambiar a plan anual"
+                style={{ color: '#1D9E75', fontSize: '11px', textDecoration: 'none' }}>
+                Cambiar a anual y ahorrar →
+              </a>
+            </div>
+          ) : user?.plan === 'pro_annual' ? (
+            <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.4)' }}>
+              ✓ Plan anual activo
+            </div>
+          ) : null}
         </div>
 
         {/* WELCOME / USER INFO */}
