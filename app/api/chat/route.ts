@@ -36,10 +36,14 @@ PRODUCTOS:
 - Travi Finance: Control de finanzas personales (próximamente)
 
 PLANES:
-- Plan Free: GRATIS — Acceso completo hasta 30 operaciones. Sin tarjeta de crédito.
-- Plan Pro Mensual: $5.99/mes — Operaciones ilimitadas, soporte prioritario. Cancela cuando quieras.
-- Plan Pro Anual: $50/año ($4.16/mes) — Mismo acceso que mensual. Ahorras $21.88 al año.
-- Plan Free Completo: Acceso total igual que Pro, asignado por el equipo de Travitrade.
+- Plan Free: GRATIS — 1 cuenta de trading, hasta 30 operaciones, calendario de rendimiento incluido, dashboard y análisis básico. Sin reportes avanzados. Sin tarjeta de crédito.
+- Plan Pro Mensual: $5.99/mes — Cuentas ilimitadas, operaciones ilimitadas, calendario, reportes avanzados PDF, análisis de setups completo, soporte prioritario. Cancela cuando quieras.
+- Plan Pro Anual: $50/año ($4.16/mes) — Todo lo del Pro mensual. Ahorras $21.88 al año.
+- Plan Free Completo: Acceso total igual que Pro, asignado especialmente por el equipo de Travitrade.
+
+DIFERENCIAS CLAVE FREE vs PRO:
+- Free: 1 cuenta, 30 operaciones máx, calendario ✓, reportes ✗
+- Pro: cuentas ilimitadas, operaciones ilimitadas, calendario ✓, reportes ✓
 
 REGISTRO Y ACCESO:
 - Registro gratuito en app.travitrade.com/registro
