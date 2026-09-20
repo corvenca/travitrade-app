@@ -348,6 +348,14 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
+
+        {/* Link contacto */}
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <a href="/contacto"
+            style={{ fontSize: '13px', color: 'rgba(159,225,203,0.5)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            ¿Necesitas ayuda? <span style={{ color: '#1D9E75' }}>Contáctanos →</span>
+          </a>
+        </div>
         </div>
       </main>
     </div>
