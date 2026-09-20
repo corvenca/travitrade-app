@@ -10,7 +10,7 @@ export default function ChatWidget() {
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2)}`)
+  const [sessionId, setSessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).slice(2)}`)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userNameChat, setUserNameChat] = useState<string | null>(null)
 
@@ -32,6 +32,21 @@ export default function ChatWidget() {
       }
     }).catch(() => {})
   }, [])
+
+  // Al iniciar, buscar si el usuario ya tiene una sesión activa
+  useEffect(() => {
+    if (userEmail) {
+      fetch('/api/chat/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail })
+      }).then(r => r.json()).then(data => {
+        if (data.sessionId) {
+          setSessionId(data.sessionId)
+        }
+      }).catch(() => {})
+    }
+  }, [userEmail])
 
   // Al abrir o detectar userEmail, verificar si el usuario logueado tiene datos
   useEffect(() => {

@@ -46,6 +46,19 @@ export async function POST(request: Request) {
   try {
     const { messages, sessionId, userEmail } = await request.json()
 
+    let activeSessionId = sessionId
+    if (userEmail) {
+      const existingSession = await pool.query(
+        `SELECT DISTINCT session_id FROM chat_sessions
+         WHERE user_email = $1
+         ORDER BY created_at DESC LIMIT 1`,
+        [userEmail]
+      )
+      if (existingSession.rows.length > 0) {
+        activeSessionId = existingSession.rows[0].session_id
+      }
+    }
+
     const validMessages = messages.filter((m: any) => m.content && m.content.trim().length > 0)
     if (validMessages.length === 0) {
       return NextResponse.json({ reply: '¿En qué puedo ayudarte? 😊' }, { headers: corsHeaders })
@@ -89,7 +102,7 @@ export async function POST(request: Request) {
           AND session_id != $1
         ORDER BY created_at DESC
         LIMIT 1
-      `, [sessionId])
+      `, [activeSessionId])
       if (prevBySession.rows.length > 0 && prevBySession.rows[0].user_email === userEmail) {
         previousLeadData = prevBySession.rows[0]
       }
@@ -100,7 +113,7 @@ export async function POST(request: Request) {
     try {
       const agentCheck = await pool.query(
         'SELECT agent_active FROM chat_sessions WHERE session_id = $1 AND agent_active = true LIMIT 1',
-        [sessionId]
+        [activeSessionId]
       )
       agentIsActive = agentCheck.rows.length > 0
     } catch {}
@@ -111,12 +124,12 @@ export async function POST(request: Request) {
     if (agentIsActive) {
       await pool.query(
         'INSERT INTO chat_sessions (session_id, user_email, user_name, user_pais, user_telefono, user_plan, role, content, status, agent_active) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,true)',
-        [sessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', 'user', lastUserMsg.content, 'requiere_agente']
+        [activeSessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', 'user', lastUserMsg.content, 'requiere_agente']
       )
       return NextResponse.json({
         reply: null,
         agentActive: true,
-        sessionId
+        sessionId: activeSessionId
       }, { headers: corsHeaders })
     }
 
@@ -189,11 +202,11 @@ export async function POST(request: Request) {
 
     await pool.query(
       'INSERT INTO chat_sessions (session_id, user_email, user_name, user_pais, user_telefono, user_plan, role, content, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-      [sessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', lastUserMsg.role, lastUserMsg.content, status]
+      [activeSessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', lastUserMsg.role, lastUserMsg.content, status]
     )
     await pool.query(
       'INSERT INTO chat_sessions (session_id, user_email, user_name, user_pais, user_telefono, user_plan, role, content, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-      [sessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', 'assistant', reply, status]
+      [activeSessionId, userEmail || null, userName || 'Visitante', userData?.pais || null, userData?.telefono || null, userData?.plan || 'visitante', 'assistant', reply, status]
     )
 
     const isFirstMessage = messages.length === 1
@@ -210,13 +223,13 @@ export async function POST(request: Request) {
         clientPhone: userData?.telefono || undefined,
         clientCountry: userData?.pais || undefined,
         source: userEmail ? 'app' : 'web',
-        sessionId
+        sessionId: activeSessionId
       }).catch(() => {})
     }
 
     return NextResponse.json({
       reply,
-      sessionId,
+      sessionId: activeSessionId,
       userName,
       previousLeadData: previousLeadData || null
     }, { headers: corsHeaders })

@@ -23,12 +23,13 @@ export async function GET() {
         role TEXT NOT NULL,
         content TEXT NOT NULL,
         status TEXT DEFAULT 'potencial',
+        agent_active BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT NOW()
       )
     `)
 
     const result = await pool.query(`
-      SELECT DISTINCT ON (session_id)
+      SELECT DISTINCT ON (COALESCE(user_email, session_id))
         session_id,
         user_email,
         user_name,
@@ -36,12 +37,22 @@ export async function GET() {
         user_telefono,
         user_plan,
         status,
+        agent_active,
         created_at,
-        (SELECT COUNT(*) FROM chat_sessions cs2 WHERE cs2.session_id = chat_sessions.session_id) as message_count,
-        (SELECT content FROM chat_sessions cs3 WHERE cs3.session_id = chat_sessions.session_id AND cs3.role = 'user' ORDER BY cs3.created_at DESC LIMIT 1) as last_user_message,
-        (SELECT created_at FROM chat_sessions cs4 WHERE cs4.session_id = chat_sessions.session_id ORDER BY cs4.created_at DESC LIMIT 1) as last_activity
+        (SELECT COUNT(*) FROM chat_sessions cs2
+         WHERE cs2.user_email = chat_sessions.user_email
+         OR cs2.session_id = chat_sessions.session_id) as message_count,
+        (SELECT content FROM chat_sessions cs3
+         WHERE (cs3.user_email = chat_sessions.user_email
+         OR cs3.session_id = chat_sessions.session_id)
+         AND cs3.role = 'user'
+         ORDER BY cs3.created_at DESC LIMIT 1) as last_user_message,
+        (SELECT created_at FROM chat_sessions cs4
+         WHERE cs4.user_email = chat_sessions.user_email
+         OR cs4.session_id = chat_sessions.session_id
+         ORDER BY cs4.created_at DESC LIMIT 1) as last_activity
       FROM chat_sessions
-      ORDER BY session_id, created_at DESC
+      ORDER BY COALESCE(user_email, session_id), created_at DESC
     `)
 
     return NextResponse.json({ chats: result.rows })

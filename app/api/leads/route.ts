@@ -13,7 +13,7 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
   try {
-    const { nombre, apellido, email, whatsapp, sessionId } = await request.json()
+    const { nombre, apellido, email, whatsapp, pais, sessionId } = await request.json()
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS leads (
@@ -22,32 +22,25 @@ export async function POST(request: Request) {
         apellido TEXT,
         email TEXT,
         whatsapp TEXT,
+        pais TEXT,
         session_id TEXT,
         status TEXT DEFAULT 'potencial',
         source TEXT DEFAULT 'web',
         created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(email)
       )
     `)
 
-    // Verificar si ya existe como usuario registrado
-    const userExists = await pool.query('SELECT id, plan FROM users WHERE email = $1', [email])
-
-    if (userExists.rows.length > 0) {
-      // Ya es cliente — actualizar status
-      await pool.query(`
-        INSERT INTO leads (nombre, apellido, email, whatsapp, session_id, status, source)
-        VALUES ($1, $2, $3, $4, $5, 'cliente', 'web')
-        ON CONFLICT (email) DO UPDATE SET status = 'cliente'
-      `, [nombre, apellido, email, whatsapp, sessionId])
-    } else {
-      // Es un lead nuevo
-      await pool.query(`
-        INSERT INTO leads (nombre, apellido, email, whatsapp, session_id, status, source)
-        VALUES ($1, $2, $3, $4, $5, 'potencial', 'web')
-        ON CONFLICT (email) DO NOTHING
-      `, [nombre, apellido, email, whatsapp, sessionId])
-    }
+    await pool.query(`
+      INSERT INTO leads (nombre, apellido, email, whatsapp, pais, session_id, status, source)
+      VALUES ($1, $2, $3, $4, $5, $6, 'potencial', 'web')
+      ON CONFLICT (email) DO UPDATE SET
+        whatsapp = EXCLUDED.whatsapp,
+        pais = EXCLUDED.pais,
+        session_id = EXCLUDED.session_id,
+        updated_at = NOW()
+    `, [nombre, apellido, email, whatsapp, pais || null, sessionId])
 
     return NextResponse.json({ success: true }, { headers: corsHeaders })
   } catch (error: any) {
