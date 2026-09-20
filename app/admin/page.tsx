@@ -36,6 +36,7 @@ export default function AdminPage() {
           { id: 'dashboard', label: 'Dashboard', color: '#1D9E75', href: '/admin' },
           { id: 'usuarios', label: 'Usuarios', color: '#1D9E75', href: '/admin/usuarios' },
           { id: 'mensajeria', label: 'Mensajería', color: '#F59E0B', href: '/admin/mensajeria' },
+          { id: 'contactos', label: 'Contactos', color: '#1D9E75', href: '/admin/contactos' },
           { id: 'seguridad', label: 'Seguridad', color: '#E24B4A', href: '/admin/seguridad' },
         ].map(item => (
           <a key={item.id}

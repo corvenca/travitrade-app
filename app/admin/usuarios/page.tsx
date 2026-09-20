@@ -127,6 +127,7 @@ export default function UsuariosPage() {
           { label: 'Dashboard', href: '/admin' },
           { label: 'Usuarios', href: '/admin/usuarios', active: true },
           { label: 'Mensajería', href: '/admin/mensajeria' },
+          { label: 'Contactos', href: '/admin/contactos' },
           { label: 'Seguridad', href: '/admin/seguridad' },
         ].map(item => (
           <a key={item.label} href={item.href} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 20px', fontSize: '13px', color: item.active ? '#1D9E75' : 'rgba(159,225,203,0.6)', background: item.active ? '#0f2a1a' : 'transparent', borderLeft: item.active ? '2px solid #1D9E75' : '2px solid transparent', textDecoration: 'none' }}>
