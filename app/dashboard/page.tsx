@@ -268,7 +268,7 @@ export default function DashboardPage() {
           ) : user?.plan === 'pro' ? (
             <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.4)', textAlign: 'right' }}>
               <div>✓ Plan activo</div>
-              <a href="mailto:soporte@travitrade.com?subject=Cambiar a plan anual"
+              <a href="mailto:atencionalcliente@travitrade.com?subject=Cambiar a plan anual"
                 style={{ color: '#1D9E75', fontSize: '11px', textDecoration: 'none' }}>
                 Cambiar a anual y ahorrar →
               </a>

@@ -80,7 +80,7 @@ export async function POST(request: Request) {
               <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin: 0; line-height: 1.5;">${mensaje}</p>
             </div>
             <p style="color: rgba(255,255,255,0.4); font-size: 12px;">
-              Si necesitas ayuda inmediata escríbenos a soporte@travitrade.com<br>
+              Si necesitas ayuda inmediata escríbenos a atencionalcliente@travitrade.com<br>
               El equipo de Travitrade
             </p>
           </div>

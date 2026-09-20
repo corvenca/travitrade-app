@@ -48,7 +48,7 @@ DIFERENCIAS CLAVE FREE vs PRO:
 REGISTRO Y ACCESO:
 - Registro gratuito en app.travitrade.com/registro
 - Journals en journals.travitrade.com
-- Soporte: soporte@travitrade.com | Instagram: @travitrade
+- Soporte: atencionalcliente@travitrade.com | Instagram: @travitrade
 - Sin tarjeta de crédito para plan Free.
 - Los datos se mantienen 30 días después de cancelar plan Pro.
 `

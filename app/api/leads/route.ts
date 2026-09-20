@@ -99,7 +99,7 @@ export async function POST(request: Request) {
               <a href="https://travitrade.com" style="display: inline-block; background: #1D9E75; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 500;">Visitar Travitrade →</a>
             </div>
 
-            <p style="color: rgba(255,255,255,0.4); font-size: 12px; text-align: center;">Si tienes alguna pregunta escríbenos a soporte@travitrade.com</p>
+            <p style="color: rgba(255,255,255,0.4); font-size: 12px; text-align: center;">Si tienes alguna pregunta escríbenos a atencionalcliente@travitrade.com</p>
           </div>
         `
       }).catch(() => {})

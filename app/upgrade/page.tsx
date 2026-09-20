@@ -114,16 +114,16 @@ export default function UpgradePage() {
                   </span>
                 </a>
                 <a
-                  href={`mailto:soporte@travitrade.com?subject=Activar Plan Pro ${selectedPlan === 'annual' ? 'Anual' : 'Mensual'} - Travi Journals&body=Hola,%20quiero%20activar%20el%20plan%20Pro%20${selectedPlan === 'annual' ? 'Anual%20(%2450/a%C3%B1o)' : 'Mensual%20(%245.99/mes)'}.%20Mi%20email%20es%20${user?.email || ''}`}
+                  href={`mailto:atencionalcliente@travitrade.com?subject=Activar Plan Pro ${selectedPlan === 'annual' ? 'Anual' : 'Mensual'} - Travi Journals&body=Hola,%20quiero%20activar%20el%20plan%20Pro%20${selectedPlan === 'annual' ? 'Anual%20(%2450/a%C3%B1o)' : 'Mensual%20(%245.99/mes)'}.%20Mi%20email%20es%20${user?.email || ''}`}
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '10px', color: '#9FE1CB', fontSize: '13px', textDecoration: 'none' }}>
-                  ✉ Enviar email a soporte@travitrade.com
+                  ✉ Enviar email a atencionalcliente@travitrade.com
                 </a>
               </div>
             </div>
 
             <div style={{ textAlign: 'center', fontSize: '11px', color: 'rgba(159,225,203,0.3)', lineHeight: '1.6' }}>
               Activación en menos de 24 horas · Tus datos nunca se pierden<br/>
-              Cancela cuando quieras enviando un email a soporte@travitrade.com
+              Cancela cuando quieras enviando un email a atencionalcliente@travitrade.com
             </div>
           </>
         )}

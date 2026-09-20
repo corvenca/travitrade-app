@@ -166,12 +166,12 @@ export default function ContactoPage() {
         <div style={{ marginTop: '24px', background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '12px', padding: '20px' }}>
           <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1px', marginBottom: '14px' }}>OTROS CANALES DE CONTACTO</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <a href="mailto:soporte@travitrade.com"
+            <a href="mailto:atencionalcliente@travitrade.com"
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#0a1a0f', borderRadius: '8px', border: '0.5px solid #1a3a24', textDecoration: 'none' }}>
               <span style={{ fontSize: '16px' }}>✉</span>
               <div>
                 <div style={{ fontSize: '13px', color: '#fff' }}>Email directo</div>
-                <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)' }}>soporte@travitrade.com</div>
+                <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)' }}>atencionalcliente@travitrade.com</div>
               </div>
             </a>
             <a href="https://instagram.com/travitrade" target="_blank" rel="noopener noreferrer"

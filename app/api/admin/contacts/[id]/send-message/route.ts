@@ -39,7 +39,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             ${message.replace(/\n/g, '<br>')}
           </div>
           <p style="color: rgba(255,255,255,0.4); font-size: 12px; text-align: center;">
-            El equipo de Travitrade · soporte@travitrade.com
+            El equipo de Travitrade · atencionalcliente@travitrade.com
           </p>
         </div>
       `
