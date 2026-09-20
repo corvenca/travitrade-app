@@ -100,6 +100,14 @@ export async function POST(request: Request) {
       ? `\nEl usuario registrado se llama ${userName} y tiene plan ${userData?.plan || 'free'}. Salúdalo por su nombre.`
       : '\nEl usuario no está registrado aún. Es un visitante potencial.'
 
+    const cleanMessages = messages
+      .filter((m: any) => m.content && m.content.trim().length > 0)
+      .map((m: any) => ({
+        role: m.role === 'agent' ? 'assistant' : m.role === 'user' ? 'user' : m.role,
+        content: m.content
+      }))
+      .filter((m: any) => m.role === 'user' || m.role === 'assistant')
+
     const apiKey = process.env.ANTHROPIC_API_KEY
     console.log('API KEY EXISTS:', !!apiKey)
     console.log('API KEY STARTS WITH:', apiKey?.substring(0, 10))
@@ -115,7 +123,7 @@ export async function POST(request: Request) {
         model: 'claude-sonnet-4-5',
         max_tokens: 300,
         system: TRAVITRADE_CONTEXT + userContext,
-        messages: messages.map((m: any) => ({ role: m.role, content: m.content }))
+        messages: cleanMessages
       })
     })
 
