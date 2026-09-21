@@ -14,13 +14,31 @@ const CATEGORIAS = [
 export default function ContactoPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
-  const [form, setForm] = useState({ asunto: '', categoria: 'soporte_tecnico', mensaje: '' })
+  const [form, setForm] = useState({
+    asunto: '',
+    categoria: 'soporte_tecnico',
+    mensaje: ''
+  })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch('/api/auth/me').then(r => r.json()).then(setUser).catch(() => {})
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(data => {
+        setUser(data)
+        // Pre-llenar asunto con el plan del usuario
+        const planLabel = data.plan === 'pro' ? 'Plan Pro'
+          : data.plan === 'pro_annual' ? 'Plan Pro Anual'
+          : data.plan === 'free_full' ? 'Plan Free Completo'
+          : 'Plan Free'
+        setForm(prev => ({
+          ...prev,
+          asunto: `[${planLabel}] `
+        }))
+      })
+      .catch(() => {})
   }, [])
 
   const handleSubmit = async () => {
@@ -34,11 +52,14 @@ export default function ContactoPage() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify({
+          ...form,
+          nombre: `${user?.nombre || ''} ${user?.apellido || ''}`.trim(),
+          email: user?.email
+        })
       })
       if (res.ok) {
         setSuccess(true)
-        setForm({ asunto: '', categoria: 'soporte_tecnico', mensaje: '' })
       } else {
         const data = await res.json()
         setError(data.error || 'Error al enviar. Intenta de nuevo.')
@@ -66,36 +87,55 @@ export default function ContactoPage() {
       <div style={{ maxWidth: '560px', margin: '0 auto', padding: '40px 24px' }}>
 
         {/* TÍTULO */}
-        <div style={{ marginBottom: '32px' }}>
+        <div style={{ marginBottom: '28px' }}>
           <h1 style={{ fontSize: '22px', fontWeight: '500', color: '#fff', marginBottom: '6px' }}>Centro de Ayuda</h1>
           <p style={{ fontSize: '14px', color: 'rgba(159,225,203,0.5)', lineHeight: '1.6' }}>
-            ¿Tienes alguna consulta? Envíanos un mensaje y te responderemos en menos de 24 horas.
+            Envíanos tu consulta y te responderemos en menos de 24 horas.
           </p>
         </div>
 
-        {/* INFO USUARIO */}
+        {/* DATOS DEL USUARIO */}
         {user && (
-          <div style={{ background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '10px', padding: '12px 16px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: '13px', color: '#fff', fontWeight: '500' }}>{user.nombre} {user.apellido}</div>
-              <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)' }}>{user.email}</div>
+          <div style={{ background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '10px', padding: '14px 16px', marginBottom: '24px' }}>
+            <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1px', marginBottom: '10px' }}>TUS DATOS</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div>
+                <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.3)', marginBottom: '2px' }}>NOMBRE</div>
+                <div style={{ fontSize: '13px', color: '#fff' }}>{user.nombre} {user.apellido}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.3)', marginBottom: '2px' }}>EMAIL</div>
+                <div style={{ fontSize: '13px', color: '#9FE1CB' }}>{user.email}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.3)', marginBottom: '2px' }}>PLAN</div>
+                <span style={{ fontSize: '11px', padding: '2px 10px', borderRadius: '20px',
+                  background: user.plan === 'pro' || user.plan === 'free_full' ? '#0f2e1a' : '#1a1d24',
+                  color: user.plan === 'pro' || user.plan === 'free_full' ? '#1D9E75' : 'rgba(159,225,203,0.4)',
+                  border: `0.5px solid ${user.plan === 'pro' || user.plan === 'free_full' ? '#1D9E75' : '#2a2d34'}` }}>
+                  {user.plan === 'pro' ? '⭐ Pro Mensual'
+                    : user.plan === 'pro_annual' ? '⭐ Pro Anual'
+                    : user.plan === 'free_full' ? '⭐ Free Completo'
+                    : '🔓 Free'}
+                </span>
+              </div>
+              <div>
+                <div style={{ fontSize: '10px', color: 'rgba(159,225,203,0.3)', marginBottom: '2px' }}>USUARIO</div>
+                <div style={{ fontSize: '13px', color: '#9FE1CB' }}>@{user.username || '—'}</div>
+              </div>
             </div>
-            <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '20px', background: user.plan === 'pro' ? '#0f2e1a' : '#1a1d24', color: user.plan === 'pro' ? '#1D9E75' : 'rgba(159,225,203,0.4)', border: `0.5px solid ${user.plan === 'pro' ? '#1D9E75' : '#2a2d34'}` }}>
-              {user.plan?.toUpperCase() || 'FREE'}
-            </span>
           </div>
         )}
 
         {success ? (
-          /* ÉXITO */
           <div style={{ background: '#0d1f14', border: '0.5px solid #1D9E75', borderRadius: '12px', padding: '40px', textAlign: 'center' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
-            <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#fff', marginBottom: '8px' }}>¡Mensaje enviado!</h2>
+            <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#fff', marginBottom: '8px' }}>¡Consulta enviada!</h2>
             <p style={{ fontSize: '14px', color: 'rgba(159,225,203,0.5)', marginBottom: '24px', lineHeight: '1.6' }}>
-              Recibimos tu consulta. Te responderemos en menos de 24 horas al correo registrado.
+              Recibimos tu mensaje. Te responderemos en menos de 24 horas a <strong style={{ color: '#9FE1CB' }}>{user?.email}</strong>.
             </p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-              <button onClick={() => setSuccess(false)}
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => { setSuccess(false); setForm(prev => ({ ...prev, mensaje: '' })) }}
                 style={{ padding: '10px 20px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '8px', color: '#9FE1CB', fontSize: '13px', cursor: 'pointer' }}>
                 Enviar otra consulta
               </button>
@@ -106,7 +146,6 @@ export default function ContactoPage() {
             </div>
           </div>
         ) : (
-          /* FORMULARIO */
           <div style={{ background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '12px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
             {/* Categoría */}
@@ -128,7 +167,7 @@ export default function ContactoPage() {
               <input
                 value={form.asunto}
                 onChange={e => setForm({ ...form, asunto: e.target.value })}
-                placeholder="Ej: No puedo acceder a mis reportes"
+                placeholder="Describe brevemente tu consulta"
                 style={{ width: '100%', background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '10px 12px', color: '#9FE1CB', fontSize: '13px', outline: 'none' }}
               />
             </div>
@@ -139,7 +178,7 @@ export default function ContactoPage() {
               <textarea
                 value={form.mensaje}
                 onChange={e => setForm({ ...form, mensaje: e.target.value })}
-                placeholder="Describe tu consulta con el mayor detalle posible para que podamos ayudarte mejor..."
+                placeholder="Describe tu consulta con el mayor detalle posible..."
                 rows={6}
                 style={{ width: '100%', background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '10px 12px', color: '#9FE1CB', fontSize: '13px', resize: 'vertical', outline: 'none' }}
               />
@@ -156,19 +195,19 @@ export default function ContactoPage() {
               {loading ? 'Enviando...' : '✉ Enviar consulta'}
             </button>
 
-            <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.3)', textAlign: 'center', lineHeight: '1.6' }}>
+            <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.3)', textAlign: 'center' }}>
               Respuesta en menos de 24 horas · atencionalcliente@travitrade.com
             </div>
           </div>
         )}
 
         {/* CANALES ALTERNATIVOS */}
-        <div style={{ marginTop: '24px', background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1px', marginBottom: '14px' }}>OTROS CANALES DE CONTACTO</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ marginTop: '20px', background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '12px', padding: '16px 20px' }}>
+          <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', letterSpacing: '1px', marginBottom: '12px' }}>OTROS CANALES</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <a href="mailto:atencionalcliente@travitrade.com"
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#0a1a0f', borderRadius: '8px', border: '0.5px solid #1a3a24', textDecoration: 'none' }}>
-              <span style={{ fontSize: '16px' }}>✉</span>
+              <span>✉</span>
               <div>
                 <div style={{ fontSize: '13px', color: '#fff' }}>Email directo</div>
                 <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)' }}>atencionalcliente@travitrade.com</div>
@@ -176,7 +215,7 @@ export default function ContactoPage() {
             </a>
             <a href="https://instagram.com/travitrade" target="_blank" rel="noopener noreferrer"
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', background: '#0a1a0f', borderRadius: '8px', border: '0.5px solid #1a3a24', textDecoration: 'none' }}>
-              <span style={{ fontSize: '16px' }}>📸</span>
+              <span>📸</span>
               <div>
                 <div style={{ fontSize: '13px', color: '#fff' }}>Instagram</div>
                 <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)' }}>@travitrade</div>

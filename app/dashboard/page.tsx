@@ -13,7 +13,8 @@ import {
   User, 
   Settings,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  HelpCircle
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -130,6 +131,12 @@ export default function DashboardPage() {
           <Link href="/upgrade">
             <div className="flex items-center gap-3 px-4 py-2.5 text-[#1D9E75] hover:bg-[#0f2e1a] rounded-lg font-medium cursor-pointer transition-colors mb-1">
               <span>🚀 Actualizar a Pro</span>
+            </div>
+          </Link>
+          <Link href="/contacto">
+            <div className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800/30 rounded-lg font-medium cursor-pointer transition-colors mb-1">
+              <HelpCircle size={20} />
+              <span>Contacto / Ayuda</span>
             </div>
           </Link>
           <Link href="/perfil">
