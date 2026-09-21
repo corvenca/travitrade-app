@@ -22,20 +22,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Asunto y mensaje son obligatorios' }, { status: 400, headers: corsHeaders })
     }
 
-    // Obtener datos del usuario logueado si existe
-    let userData = { nombre, email }
+    // Obtener datos completos del usuario logueado
+    let userData: any = { nombre, email }
     try {
       const cookieStore = await cookies()
       const token = cookieStore.get('token')
       if (token) {
         const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'travitrade_secret_2025') as any
-        const userRes = await pool.query('SELECT nombre, apellido, email, plan FROM users WHERE id = $1', [decoded.userId])
+        const userRes = await pool.query(
+          'SELECT nombre, apellido, email, telefono, pais, plan, username FROM users WHERE id = $1',
+          [decoded.userId]
+        )
         if (userRes.rows.length > 0) {
           const u = userRes.rows[0]
-          userData = { nombre: `${u.nombre} ${u.apellido || ''}`.trim(), email: u.email, ...u }
+          userData = {
+            nombre: `${u.nombre || ''} ${u.apellido || ''}`.trim(),
+            email: u.email,
+            telefono: u.telefono,
+            pais: u.pais,
+            plan: u.plan,
+            username: u.username
+          }
         }
       }
-    } catch {}
+    } catch (e) {
+      console.log('No hay token o error:', e)
+    }
 
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -60,9 +72,12 @@ export async function POST(request: Request) {
             <h3 style="margin: 0 0 12px; font-size: 14px; color: #9FE1CB;">Datos del cliente</h3>
             <p style="margin: 4px 0;"><strong>Nombre:</strong> ${userData.nombre || '—'}</p>
             <p style="margin: 4px 0;"><strong>Email:</strong> ${userData.email || '—'}</p>
-            <p style="margin: 4px 0;"><strong>Plan:</strong> ${(userData as any).plan || 'No registrado'}</p>
+            <p style="margin: 4px 0;"><strong>Teléfono:</strong> ${userData.telefono || '—'}</p>
+            <p style="margin: 4px 0;"><strong>País:</strong> ${userData.pais || '—'}</p>
+            <p style="margin: 4px 0;"><strong>Plan:</strong> ${userData.plan || '—'}</p>
+            <p style="margin: 4px 0;"><strong>Usuario:</strong> @${userData.username || '—'}</p>
           </div>
-          <div style="background: #0d1f14; padding: 16px; border-radius: 8px; border: 0.5px solid #1a3a24;">
+          <div style="background: #0d1f14; padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 0.5px solid #1a3a24;">
             <h3 style="margin: 0 0 8px; font-size: 14px; color: #9FE1CB;">Asunto: ${asunto}</h3>
             <p style="margin: 0; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${mensaje}</p>
           </div>
