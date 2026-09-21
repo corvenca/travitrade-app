@@ -11,7 +11,7 @@ const corsHeaders = {
 }
 
 export async function OPTIONS() {
-  return new NextResponse(null, { headers: corsHeaders })
+  return new NextResponse(null, { status: 200, headers: corsHeaders })
 }
 
 export async function POST(request: Request) {
@@ -100,6 +100,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true }, { headers: corsHeaders })
   } catch (error: any) {
+    console.error('Contact error:', error)
     return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders })
   }
 }
