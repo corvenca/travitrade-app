@@ -16,7 +16,13 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
   try {
-    const { asunto, categoria, mensaje, nombre, email } = await request.json()
+    const body = await request.json()
+    console.log('CONTACT POST recibido:', JSON.stringify(body))
+    console.log('SMTP_HOST:', process.env.SMTP_HOST)
+    console.log('SMTP_USER exists:', !!process.env.SMTP_USER)
+    console.log('SMTP_PASS exists:', !!process.env.SMTP_PASS)
+
+    const { asunto, categoria, mensaje, nombre, email } = body
 
     if (!asunto || !mensaje) {
       return NextResponse.json({ error: 'Asunto y mensaje son obligatorios' }, { status: 400, headers: corsHeaders })
@@ -56,6 +62,8 @@ export async function POST(request: Request) {
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
     })
 
+    console.log('Intentando enviar email a atencionalcliente@travitrade.com')
+
     // Email al equipo de Travitrade
     await transporter.sendMail({
       from: `"Travitrade Contacto" <${process.env.SMTP_USER}>`,
@@ -84,6 +92,8 @@ export async function POST(request: Request) {
         </div>
       `
     })
+
+    console.log('Email enviado exitosamente')
 
     // Email de confirmación al usuario
     if (userData.email) {
@@ -115,7 +125,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true }, { headers: corsHeaders })
   } catch (error: any) {
-    console.error('Contact error:', error)
+    console.error('CONTACT ERROR:', error.message)
+    console.error('STACK:', error.stack)
     return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders })
   }
 }
