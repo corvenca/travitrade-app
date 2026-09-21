@@ -4,12 +4,22 @@ import jwt from 'jsonwebtoken'
 import nodemailer from 'nodemailer'
 import pool from '@/lib/db'
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { headers: corsHeaders })
+}
+
 export async function POST(request: Request) {
   try {
     const { asunto, categoria, mensaje, nombre, email } = await request.json()
 
     if (!asunto || !mensaje) {
-      return NextResponse.json({ error: 'Asunto y mensaje son obligatorios' }, { status: 400 })
+      return NextResponse.json({ error: 'Asunto y mensaje son obligatorios' }, { status: 400, headers: corsHeaders })
     }
 
     // Obtener datos del usuario logueado si existe
@@ -88,8 +98,8 @@ export async function POST(request: Request) {
       }).catch(() => {})
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true }, { headers: corsHeaders })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders })
   }
 }
