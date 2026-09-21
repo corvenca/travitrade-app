@@ -3,50 +3,49 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import pool from '@/lib/db';
 
-const secretKey = process.env.JWT_SECRET || 'fallback_secret';
+const secretKey = process.env.JWT_SECRET || 'travitrade_secret_2025';
 const key = new TextEncoder().encode(secretKey);
 
 export async function GET() {
   try {
-    const sessionCookie = (await cookies()).get('travitrade_session')?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value || cookieStore.get('travitrade_session')?.value;
 
-    if (!sessionCookie) {
+    if (!token) {
       return NextResponse.json({ success: false, error: 'No session' }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(sessionCookie, key, {
+    const { payload } = await jwtVerify(token, key, {
       algorithms: ['HS256'],
     });
 
     const userId = payload.userId;
 
-    const userResult = await pool.query('SELECT id, nombre, email, plan FROM users WHERE id = $1', [userId]);
-    
+    const userResult = await pool.query(
+      'SELECT id, nombre, apellido, email, telefono, pais, plan, username FROM users WHERE id = $1',
+      [userId]
+    );
+
     if (userResult.rows.length === 0) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
     const user = userResult.rows[0];
+    const isAdmin = user.email === 'altuveronalbis@gmail.com';
 
-    const isAdmin = user.email === 'altuveronalbis@gmail.com'
-    const hasFullAccess = user.plan === 'pro' || user.plan === 'free_full' || isAdmin
-    const displayPlan = user.plan === 'free_full' ? 'pro' : user.plan
-
-    const userData = {
-      success: true,
-      user: {
-        id: user.id,
-        nombre: user.nombre,
-        email: user.email,
-        plan: isAdmin ? 'pro' : (user.plan || 'free'),
-        hasFullAccess,
-        displayPlan
-      }
-    };
-
-    return NextResponse.json(userData, {
+    return NextResponse.json({
+      userId: user.id,
+      nombre: user.nombre,
+      apellido: user.apellido,
+      email: user.email,
+      telefono: user.telefono,
+      pais: user.pais,
+      plan: isAdmin ? 'pro' : (user.plan || 'free'),
+      username: user.username,
+      isAdmin,
+    }, {
       headers: {
-        'Access-Control-Allow-Origin': 'http://localhost:3001',
+        'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Allow-Methods': 'GET',
       }
