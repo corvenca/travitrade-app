@@ -97,30 +97,69 @@ export async function POST(request: Request) {
 
     // Email de confirmación al usuario
     if (userData.email) {
-      await transporter.sendMail({
-        from: `"Travitrade" <${process.env.SMTP_USER}>`,
-        to: userData.email,
-        subject: 'Recibimos tu consulta — Travitrade',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #fff; padding: 32px; border-radius: 12px;">
-            <h1 style="color: #1D9E75; font-size: 22px; margin-bottom: 4px;">travitrade</h1>
-            <h2 style="font-size: 18px; margin-bottom: 16px;">¡Recibimos tu consulta! 👋</h2>
-            <p style="color: rgba(255,255,255,0.7); line-height: 1.6; margin-bottom: 20px;">
-              Hola ${userData.nombre?.split(' ')[0] || ''},<br><br>
-              Recibimos tu mensaje y nuestro equipo te responderá en menos de 24 horas al correo <strong>${userData.email}</strong>.
-            </p>
-            <div style="background: #0d1f14; border-radius: 8px; padding: 16px; border: 0.5px solid #1a3a24; margin-bottom: 20px;">
-              <p style="color: rgba(255,255,255,0.5); font-size: 12px; margin: 0 0 6px;">TU CONSULTA</p>
-              <p style="font-weight: 500; margin: 0 0 8px;">${asunto}</p>
-              <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin: 0; line-height: 1.5;">${mensaje}</p>
+      try {
+        await transporter.sendMail({
+          from: `"Travitrade" <${process.env.SMTP_USER}>`,
+          to: userData.email,
+          subject: '✅ Recibimos tu consulta — Travitrade',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #fff; padding: 32px; border-radius: 12px;">
+
+              <!-- Header -->
+              <div style="text-align: center; margin-bottom: 28px;">
+                <div style="font-size: 24px; font-weight: 700; color: #1D9E75; letter-spacing: 1px;">travitrade</div>
+                <div style="font-size: 10px; color: #888; letter-spacing: 3px; margin-top: 4px;">TRADING TOOLS</div>
+              </div>
+
+              <!-- Icono de éxito -->
+              <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 60px; height: 60px; background: rgba(29,158,117,0.15); border: 2px solid #1D9E75; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 28px;">✅</div>
+              </div>
+
+              <h2 style="font-size: 20px; text-align: center; margin-bottom: 8px;">¡Recibimos tu consulta!</h2>
+              <p style="color: rgba(255,255,255,0.6); text-align: center; font-size: 14px; margin-bottom: 28px; line-height: 1.6;">
+                Hola <strong style="color: #fff">${userData.nombre?.split(' ')[0] || 'trader'}</strong>, nuestro equipo te responderá en menos de 24 horas.
+              </p>
+
+              <!-- Detalle de la consulta -->
+              <div style="background: #0d1f14; border-radius: 10px; padding: 20px; border: 0.5px solid #1a3a24; margin-bottom: 24px;">
+                <div style="font-size: 10px; color: rgba(159,225,203,0.4); letter-spacing: 2px; margin-bottom: 12px;">TU CONSULTA</div>
+                <div style="font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 8px;">${asunto}</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.6; border-top: 0.5px solid #1a3a24; padding-top: 10px;">${mensaje}</div>
+              </div>
+
+              <!-- Datos registrados -->
+              <div style="background: #0d1f14; border-radius: 10px; padding: 16px; border: 0.5px solid #1a3a24; margin-bottom: 24px;">
+                <div style="font-size: 10px; color: rgba(159,225,203,0.4); letter-spacing: 2px; margin-bottom: 10px;">TUS DATOS</div>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.7); line-height: 2;">
+                  <span style="color: rgba(255,255,255,0.4);">Nombre:</span> ${userData.nombre || '—'}<br>
+                  <span style="color: rgba(255,255,255,0.4);">Email:</span> ${userData.email}<br>
+                  <span style="color: rgba(255,255,255,0.4);">Plan:</span> ${userData.plan || 'Free'}
+                </div>
+              </div>
+
+              <!-- CTA -->
+              <div style="text-align: center; margin-bottom: 24px;">
+                <a href="https://app.travitrade.com/dashboard"
+                  style="display: inline-block; background: #1D9E75; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500;">
+                  Ir a mi Dashboard →
+                </a>
+              </div>
+
+              <!-- Footer -->
+              <div style="border-top: 0.5px solid #1a3a24; padding-top: 20px; text-align: center;">
+                <p style="color: rgba(255,255,255,0.3); font-size: 11px; line-height: 1.8; margin: 0;">
+                  Para contacto directo: <a href="mailto:atencionalcliente@travitrade.com" style="color: #1D9E75; text-decoration: none;">atencionalcliente@travitrade.com</a><br>
+                  <a href="https://travitrade.com" style="color: rgba(255,255,255,0.3); text-decoration: none;">travitrade.com</a> · <a href="https://instagram.com/travitrade" style="color: rgba(255,255,255,0.3); text-decoration: none;">@travitrade</a>
+                </p>
+              </div>
             </div>
-            <p style="color: rgba(255,255,255,0.4); font-size: 12px;">
-              Si necesitas ayuda inmediata escríbenos a atencionalcliente@travitrade.com<br>
-              El equipo de Travitrade
-            </p>
-          </div>
-        `
-      }).catch(() => {})
+          `
+        })
+        console.log('Email de confirmacion enviado a:', userData.email)
+      } catch (emailError: any) {
+        console.error('Error enviando email de confirmacion:', emailError.message)
+      }
     }
 
     return NextResponse.json({ success: true }, { headers: corsHeaders })
