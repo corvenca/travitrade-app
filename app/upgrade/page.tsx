@@ -100,7 +100,7 @@ export default function UpgradePage() {
                 💳 Pagos en línea — Próximamente
               </div>
               <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', marginBottom: '16px', textAlign: 'center', lineHeight: '1.6' }}>
-                Actualmente activamos el plan Pro manualmente. Contáctanos y te activamos en menos de 24 horas.
+                Actualmente activamos el plan Pro manualmente. Contáctanos y te activamos a la brevedad posible.
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <a
@@ -122,7 +122,7 @@ export default function UpgradePage() {
             </div>
 
             <div style={{ textAlign: 'center', fontSize: '11px', color: 'rgba(159,225,203,0.3)', lineHeight: '1.6' }}>
-              Activación en menos de 24 horas · Tus datos nunca se pierden<br/>
+              Activación a la brevedad posible · Tus datos nunca se pierden<br/>
               Cancela cuando quieras enviando un email a atencionalcliente@travitrade.com
             </div>
           </>

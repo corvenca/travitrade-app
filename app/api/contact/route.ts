@@ -118,7 +118,7 @@ export async function POST(request: Request) {
 
               <h2 style="font-size: 20px; text-align: center; margin-bottom: 8px;">¡Recibimos tu consulta!</h2>
               <p style="color: rgba(255,255,255,0.6); text-align: center; font-size: 14px; margin-bottom: 28px; line-height: 1.6;">
-                Hola <strong style="color: #fff">${userData.nombre?.split(' ')[0] || 'trader'}</strong>, nuestro equipo te responderá en menos de 24 horas.
+                Hola <strong style="color: #fff">${userData.nombre?.split(' ')[0] || 'trader'}</strong>, nuestro equipo te responderá a la brevedad posible.
               </p>
 
               <!-- Detalle de la consulta -->

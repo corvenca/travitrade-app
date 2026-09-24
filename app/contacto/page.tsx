@@ -90,7 +90,7 @@ export default function ContactoPage() {
         <div style={{ marginBottom: '28px' }}>
           <h1 style={{ fontSize: '22px', fontWeight: '500', color: '#fff', marginBottom: '6px' }}>Centro de Ayuda</h1>
           <p style={{ fontSize: '14px', color: 'rgba(159,225,203,0.5)', lineHeight: '1.6' }}>
-            Envíanos tu consulta y te responderemos en menos de 24 horas.
+            Envíanos tu consulta y te responderemos a la brevedad posible.
           </p>
         </div>
 
@@ -132,7 +132,7 @@ export default function ContactoPage() {
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
             <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#fff', marginBottom: '8px' }}>¡Consulta enviada!</h2>
             <p style={{ fontSize: '14px', color: 'rgba(159,225,203,0.5)', marginBottom: '24px', lineHeight: '1.6' }}>
-              Recibimos tu mensaje. Te responderemos en menos de 24 horas a <strong style={{ color: '#9FE1CB' }}>{user?.email}</strong>.
+              Recibimos tu mensaje. Te responderemos a la brevedad posible a <strong style={{ color: '#9FE1CB' }}>{user?.email}</strong>.
             </p>
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button onClick={() => { setSuccess(false); setForm(prev => ({ ...prev, mensaje: '' })) }}
@@ -196,7 +196,7 @@ export default function ContactoPage() {
             </button>
 
             <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.3)', textAlign: 'center' }}>
-              Respuesta en menos de 24 horas · atencionalcliente@travitrade.com
+              Respuesta a la brevedad posible · atencionalcliente@travitrade.com
             </div>
           </div>
         )}
