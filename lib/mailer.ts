@@ -38,6 +38,9 @@ export async function sendAdminNotification({
       subject: `[${source.toUpperCase()}] ${subject}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #fff; padding: 24px; border-radius: 12px;">
+          <div style="text-align: center; margin-bottom: 16px;">
+            <img src="https://travitrade.com/assets/images/Logo.png" alt="Travitrade" style="height: 40px; width: auto; margin-bottom: 8px;" />
+          </div>
           <div style="background: #1D9E75; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
             <h2 style="margin: 0; font-size: 18px;">Nuevo mensaje en Travitrade CRM</h2>
             <p style="margin: 4px 0 0; opacity: 0.8; font-size: 13px;">Fuente: ${source === 'web' ? '🌐 Sitio Web' : '📱 App'}</p>
