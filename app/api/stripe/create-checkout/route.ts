@@ -8,6 +8,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2024-06-20' as any
 })
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200, headers: corsHeaders })
+}
+
 export async function POST(request: Request) {
   try {
     const { priceId, plan } = await request.json()
@@ -54,9 +64,9 @@ export async function POST(request: Request) {
       locale: 'es'
     })
 
-    return NextResponse.json({ url: session.url, sessionId: session.id })
+    return NextResponse.json({ url: session.url, sessionId: session.id }, { headers: corsHeaders })
   } catch (error: any) {
     console.error('Stripe checkout error:', error.message)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders })
   }
 }
