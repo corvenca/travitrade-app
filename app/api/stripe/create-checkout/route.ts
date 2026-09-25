@@ -21,6 +21,8 @@ export async function OPTIONS() {
 export async function POST(request: Request) {
   try {
     const { priceId, plan } = await request.json()
+    console.log('STRIPE CHECKOUT - priceId:', priceId, 'plan:', plan)
+    console.log('STRIPE SECRET KEY exists:', !!process.env.STRIPE_SECRET_KEY)
 
     // Verificar si el usuario está logueado
     let userEmail = null
@@ -66,7 +68,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: session.url, sessionId: session.id }, { headers: corsHeaders })
   } catch (error: any) {
-    console.error('Stripe checkout error:', error.message)
+    console.error('STRIPE ERROR:', error.message)
     return NextResponse.json({ error: error.message }, { status: 500, headers: corsHeaders })
   }
 }
