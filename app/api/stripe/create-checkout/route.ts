@@ -21,8 +21,14 @@ export async function OPTIONS() {
 export async function POST(request: Request) {
   try {
     const { priceId, plan } = await request.json()
-    console.log('STRIPE CHECKOUT - priceId:', priceId, 'plan:', plan)
-    console.log('STRIPE SECRET KEY exists:', !!process.env.STRIPE_SECRET_KEY)
+    console.log('priceId recibido:', priceId)
+    console.log('plan recibido:', plan)
+    console.log('PRICE_MONTHLY env:', process.env.STRIPE_PRICE_MONTHLY)
+    console.log('PRICE_ANNUAL env:', process.env.STRIPE_PRICE_ANNUAL)
+
+    if (!priceId) {
+      return NextResponse.json({ error: 'priceId es requerido' }, { status: 400, headers: corsHeaders })
+    }
 
     // Verificar si el usuario está logueado
     let userEmail = null

@@ -17,6 +17,8 @@ export default function UpgradePage() {
         ? process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL
         : process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY
 
+      console.log('Enviando priceId:', priceId, 'plan:', planType)
+
       const res = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
