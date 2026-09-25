@@ -11,6 +11,28 @@ export default function UpgradePage() {
     fetch('/api/auth/me').then(r => r.json()).then(setUser).catch(() => {})
   }, [])
 
+  const handleCheckout = async (planType: string) => {
+    try {
+      const priceId = planType === 'annual'
+        ? process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL
+        : process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY
+
+      const res = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, plan: planType })
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert('Error al iniciar el pago. Intenta de nuevo.')
+      }
+    } catch {
+      alert('Error de conexión.')
+    }
+  }
+
   const isPro = user?.plan === 'pro' || user?.plan === 'pro_annual' || user?.plan === 'free_full'
 
   return (
@@ -96,29 +118,17 @@ export default function UpgradePage() {
 
             {/* CTA */}
             <div style={{ background: 'rgba(29,158,117,0.08)', border: '0.5px solid #1D9E75', borderRadius: '12px', padding: '20px', marginBottom: '16px' }}>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: '#1D9E75', marginBottom: '6px', textAlign: 'center' }}>
-                💳 Pagos en línea — Próximamente
+              <div style={{ fontSize: '13px', fontWeight: '500', color: '#1D9E75', marginBottom: '12px', textAlign: 'center' }}>
+                💳 Pago seguro en línea con Stripe
               </div>
-              <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', marginBottom: '16px', textAlign: 'center', lineHeight: '1.6' }}>
-                Actualmente activamos el plan Pro manualmente. Contáctanos y te activamos a la brevedad posible.
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <a
-                  href={`https://wa.me/584120000000?text=Hola%2C%20quiero%20activar%20el%20plan%20Pro%20${selectedPlan === 'annual' ? 'Anual%20(%2450%2Fa%C3%B1o)' : 'Mensual%20(%245.99%2Fmes)'}%20de%20Travi%20Journals.%20Mi%20email%20es%20${user?.email || ''}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px', background: '#1D9E75', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '500', textDecoration: 'none' }}>
-                  📱 Activar por WhatsApp
-                  <span style={{ fontSize: '12px', opacity: 0.8 }}>
-                    ({selectedPlan === 'annual' ? '$50/año' : '$5.99/mes'})
-                  </span>
-                </a>
-                <a
-                  href={`mailto:atencionalcliente@travitrade.com?subject=Activar Plan Pro ${selectedPlan === 'annual' ? 'Anual' : 'Mensual'} - Travi Journals&body=Hola,%20quiero%20activar%20el%20plan%20Pro%20${selectedPlan === 'annual' ? 'Anual%20(%2450/a%C3%B1o)' : 'Mensual%20(%245.99/mes)'}.%20Mi%20email%20es%20${user?.email || ''}`}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '10px', color: '#9FE1CB', fontSize: '13px', textDecoration: 'none' }}>
-                  ✉ Enviar email a atencionalcliente@travitrade.com
-                </a>
-              </div>
+              <button onClick={() => handleCheckout('monthly')}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px', background: '#1D9E75', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: 'pointer', border: 'none', width: '100%', marginBottom: '10px' }}>
+                💳 Suscribirse — $5.99/mes
+              </button>
+              <button onClick={() => handleCheckout('annual')}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px', background: 'transparent', border: '1px solid #1D9E75', borderRadius: '10px', color: '#1D9E75', fontSize: '14px', cursor: 'pointer', width: '100%' }}>
+                💰 Suscribirse — $50/año (ahorra $21.88)
+              </button>
             </div>
 
             <div style={{ textAlign: 'center', fontSize: '11px', color: 'rgba(159,225,203,0.3)', lineHeight: '1.6' }}>
