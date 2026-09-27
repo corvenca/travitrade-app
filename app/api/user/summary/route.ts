@@ -42,7 +42,7 @@ export async function GET() {
           SUM(CASE WHEN result_type = 'BREAK_EVEN' THEN 1 ELSE 0 END) as be,
           MAX(pnl) as best_trade,
           MIN(pnl) as worst_trade,
-          SUM(CASE WHEN date >= date_trunc('month', NOW()::date) THEN pnl ELSE 0 END) as month_pnl
+          SUM(CASE WHEN date::date >= date_trunc('month', NOW())::date THEN pnl ELSE 0 END) as month_pnl
         FROM trading_operations
         WHERE user_id = $1
       `, [userId])
