@@ -169,7 +169,7 @@ export default function PerfilPage() {
 
         <div className="mt-auto">
           <p className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">CUENTA</p>
-          <Link href="/upgrade">
+          <Link href="/upgrade?plan=annual">
             <div className="flex items-center gap-3 px-4 py-2.5 text-[#1D9E75] hover:bg-[#0f2e1a] rounded-lg font-medium cursor-pointer transition-colors mb-1">
               <span>🚀 Actualizar a Pro</span>
             </div>
@@ -345,9 +345,11 @@ export default function PerfilPage() {
                   </div>
                 </div>
 
-                <button className="w-full py-3 bg-[#1D9E75] hover:bg-[#157a5a] text-white font-bold rounded-lg transition-colors">
-                  Actualizar a Premium
-                </button>
+                <Link href="/upgrade?plan=annual">
+                  <button className="w-full py-3 bg-[#1D9E75] hover:bg-[#157a5a] text-white font-bold rounded-lg transition-colors cursor-pointer">
+                    Actualizar a Premium
+                  </button>
+                </Link>
               </div>
             </div>
           </div>

@@ -128,7 +128,7 @@ export default function DashboardPage() {
 
         <div className="mt-auto">
           <p className="text-xs text-gray-500 mb-3 font-semibold tracking-wider">CUENTA</p>
-          <Link href="/upgrade">
+          <Link href="/upgrade?plan=annual">
             <div className="flex items-center gap-3 px-4 py-2.5 text-[#1D9E75] hover:bg-[#0f2e1a] rounded-lg font-medium cursor-pointer transition-colors mb-1">
               <span>🚀 Actualizar a Pro</span>
             </div>
@@ -263,7 +263,7 @@ export default function DashboardPage() {
           {/* Botón según plan */}
           {user?.plan === 'free' ? (
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <a href="/upgrade"
+              <a href="/upgrade?plan=monthly"
                 style={{ padding: '9px 18px', background: '#1D9E75', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '500', textDecoration: 'none', whiteSpace: 'nowrap' }}>
                 🚀 Actualizar a Pro — $5.99/mes
               </a>
