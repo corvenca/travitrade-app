@@ -1,11 +1,18 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function UpgradePage() {
+function UpgradeContent() {
   const router = useRouter()
-  const [selectedPlan, setSelectedPlan] = useState('monthly')
+  const searchParams = useSearchParams()
+  const [selectedPlan, setSelectedPlan] = useState(searchParams.get('plan') || 'monthly')
   const [user, setUser] = useState<any>(null)
+
+  // Actualizar URL cuando cambia el plan
+  const handleSelectPlan = (plan: string) => {
+    setSelectedPlan(plan)
+    window.history.replaceState({}, '', `/upgrade?plan=${plan}`)
+  }
 
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(setUser).catch(() => {})
@@ -81,14 +88,14 @@ export default function UpgradePage() {
           <>
             {/* SELECTOR DE PLAN */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
-              <div onClick={() => setSelectedPlan('monthly')}
+              <div onClick={() => handleSelectPlan('monthly')}
                 style={{ background: selectedPlan === 'monthly' ? '#0f2e1a' : '#0d1f14', border: `1.5px solid ${selectedPlan === 'monthly' ? '#1D9E75' : '#1a3a24'}`, borderRadius: '12px', padding: '20px 16px', cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s' }}>
                 <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', marginBottom: '8px' }}>MENSUAL</div>
                 <div style={{ fontSize: '30px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>$5.99</div>
                 <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)' }}>por mes</div>
                 <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.3)', marginTop: '6px' }}>Cancela cuando quieras</div>
               </div>
-              <div onClick={() => setSelectedPlan('annual')}
+              <div onClick={() => handleSelectPlan('annual')}
                 style={{ background: selectedPlan === 'annual' ? '#0f2e1a' : '#0d1f14', border: `1.5px solid ${selectedPlan === 'annual' ? '#1D9E75' : '#1a3a24'}`, borderRadius: '12px', padding: '20px 16px', cursor: 'pointer', textAlign: 'center', position: 'relative', transition: 'all 0.15s' }}>
                 <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: '#1D9E75', color: '#fff', fontSize: '10px', padding: '2px 10px', borderRadius: '20px', fontWeight: '500', whiteSpace: 'nowrap' }}>AHORRA $21.88</div>
                 <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', marginBottom: '8px' }}>ANUAL</div>
@@ -123,14 +130,25 @@ export default function UpgradePage() {
               <div style={{ fontSize: '13px', fontWeight: '500', color: '#1D9E75', marginBottom: '12px', textAlign: 'center' }}>
                 💳 Pago seguro en línea con Stripe
               </div>
-              <button onClick={() => handleCheckout('monthly')}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px', background: '#1D9E75', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: 'pointer', border: 'none', width: '100%', marginBottom: '10px' }}>
-                💳 Suscribirse — $5.99/mes
+              <button
+                onClick={() => handleCheckout(selectedPlan)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  gap: '8px', padding: '14px', background: '#1D9E75', border: 'none',
+                  borderRadius: '10px', color: '#fff', fontSize: '15px',
+                  fontWeight: '500', cursor: 'pointer', width: '100%'
+                }}>
+                💳 {selectedPlan === 'annual'
+                  ? 'Suscribirse — $50/año ($4.16/mes)'
+                  : 'Suscribirse — $5.99/mes'
+                }
               </button>
-              <button onClick={() => handleCheckout('annual')}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '13px', background: 'transparent', border: '1px solid #1D9E75', borderRadius: '10px', color: '#1D9E75', fontSize: '14px', cursor: 'pointer', width: '100%' }}>
-                💰 Suscribirse — $50/año (ahorra $21.88)
-              </button>
+              <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.4)', textAlign: 'center', marginTop: '8px' }}>
+                {selectedPlan === 'annual'
+                  ? 'Pago único anual · Cancela cuando quieras'
+                  : 'Facturado mensualmente · Cancela cuando quieras'
+                }
+              </div>
             </div>
 
             <div style={{ textAlign: 'center', fontSize: '11px', color: 'rgba(159,225,203,0.3)', lineHeight: '1.6' }}>
@@ -156,5 +174,13 @@ export default function UpgradePage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function UpgradePage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#0a1a0f' }} />}>
+      <UpgradeContent />
+    </Suspense>
   )
 }
