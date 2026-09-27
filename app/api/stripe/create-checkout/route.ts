@@ -20,6 +20,7 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
   try {
+    console.log('STRIPE KEY TYPE:', process.env.STRIPE_SECRET_KEY?.substring(0, 12))
     const { priceId, plan } = await request.json()
     console.log('priceId recibido:', priceId)
     console.log('plan recibido:', plan)
