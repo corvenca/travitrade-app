@@ -8,6 +8,11 @@ function UpgradeContent() {
   const [selectedPlan, setSelectedPlan] = useState(searchParams.get('plan') || 'monthly')
   const [user, setUser] = useState<any>(null)
 
+  const [canceling, setCanceling] = useState(false)
+  const [cancelSuccess, setCancelSuccess] = useState('')
+  const [cancelError, setCancelError] = useState('')
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+
   // Actualizar URL cuando cambia el plan
   const handleSelectPlan = (plan: string) => {
     setSelectedPlan(plan)
@@ -40,6 +45,23 @@ function UpgradeContent() {
     } catch {
       alert('Error de conexión.')
     }
+  }
+
+  const handleCancel = async () => {
+    setCanceling(true)
+    try {
+      const res = await fetch('/api/stripe/cancel-subscription', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        setCancelSuccess(data.message)
+        setShowCancelConfirm(false)
+      } else {
+        setCancelError(data.error)
+      }
+    } catch {
+      setCancelError('Error de conexión')
+    }
+    setCanceling(false)
   }
 
   const isPro = user?.plan === 'pro' || user?.plan === 'pro_annual' || user?.plan === 'free_full'
@@ -170,6 +192,41 @@ function UpgradeContent() {
               style={{ padding: '10px 24px', background: '#1D9E75', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
               Ir al Dashboard →
             </button>
+
+            {!cancelSuccess && (
+              <div style={{ marginTop: '20px' }}>
+                {!showCancelConfirm ? (
+                  <button onClick={() => setShowCancelConfirm(true)}
+                    style={{ padding: '8px 16px', background: 'transparent', border: '0.5px solid #E24B4A', borderRadius: '8px', color: '#E24B4A', fontSize: '12px', cursor: 'pointer' }}>
+                    Cancelar suscripción
+                  </button>
+                ) : (
+                  <div style={{ background: 'rgba(226,75,74,0.1)', border: '0.5px solid #E24B4A', borderRadius: '10px', padding: '16px' }}>
+                    <div style={{ fontSize: '13px', color: '#fff', marginBottom: '8px', fontWeight: '500' }}>¿Confirmas la cancelación?</div>
+                    <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.6)', marginBottom: '14px', lineHeight: '1.6' }}>
+                      Mantendrás acceso Pro hasta el final del período actual. Tus datos nunca se pierden.
+                    </div>
+                    {cancelError && <div style={{ fontSize: '12px', color: '#E24B4A', marginBottom: '10px' }}>{cancelError}</div>}
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={handleCancel} disabled={canceling}
+                        style={{ flex: 1, padding: '9px', background: '#E24B4A', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', cursor: 'pointer', opacity: canceling ? 0.6 : 1 }}>
+                        {canceling ? 'Cancelando...' : 'Sí, cancelar'}
+                      </button>
+                      <button onClick={() => setShowCancelConfirm(false)}
+                        style={{ flex: 1, padding: '9px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '8px', color: '#9FE1CB', fontSize: '13px', cursor: 'pointer' }}>
+                        No, mantener
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {cancelSuccess && (
+              <div style={{ marginTop: '16px', background: 'rgba(29,158,117,0.1)', border: '0.5px solid #1D9E75', borderRadius: '8px', padding: '12px', fontSize: '13px', color: '#1D9E75' }}>
+                ✓ {cancelSuccess}
+              </div>
+            )}
           </div>
         )}
       </div>
