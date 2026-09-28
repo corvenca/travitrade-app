@@ -148,6 +148,89 @@ export async function POST(request: Request) {
     }
   }
 
+  // Suscripción pausada
+  if (event.type === 'customer.subscription.paused') {
+    const subscription = event.data.object as Stripe.Subscription
+    await pool.query(
+      "UPDATE users SET plan = 'free' WHERE stripe_customer_id = $1",
+      [subscription.customer as string]
+    ).catch(e => console.error('Error pausando plan:', e.message))
+    console.log('Plan pausado para customer:', subscription.customer)
+  }
+
+  // Suscripción reanudada
+  if (event.type === 'customer.subscription.resumed') {
+    const subscription = event.data.object as Stripe.Subscription
+    const interval = subscription.items.data[0]?.price?.recurring?.interval
+    await pool.query(
+      "UPDATE users SET plan = 'pro', billing_cycle = $1 WHERE stripe_customer_id = $2",
+      [interval === 'year' ? 'annual' : 'monthly', subscription.customer as string]
+    ).catch(e => console.error('Error reanudando plan:', e.message))
+    console.log('Plan reanudado para customer:', subscription.customer)
+  }
+
+  // Pago fallido — notificar al usuario
+  if (event.type === 'invoice.payment_failed') {
+    const invoice = event.data.object as Stripe.Invoice
+    const customerEmail = invoice.customer_email
+    console.log('Pago fallido para:', customerEmail)
+
+    if (customerEmail) {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: false,
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+      })
+
+      await transporter.sendMail({
+        from: `"Travitrade" <${process.env.SMTP_USER}>`,
+        to: customerEmail,
+        subject: '⚠️ Problema con tu pago — Travitrade',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #fff; padding: 32px; border-radius: 12px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <img src="https://travitrade.com/assets/images/Logo.png" alt="Travitrade" style="height: 48px;" />
+            </div>
+            <h2 style="color: #E24B4A; text-align: center;">⚠️ Problema con tu pago</h2>
+            <p style="color: rgba(255,255,255,0.7); text-align: center; line-height: 1.6; margin-bottom: 24px;">
+              No pudimos procesar el pago de tu suscripción Pro. Por favor actualiza tu método de pago para mantener el acceso.
+            </p>
+            <div style="text-align: center; margin-bottom: 24px;">
+              <a href="https://app.travitrade.com/upgrade" style="display: inline-block; background: #1D9E75; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500;">
+                Actualizar método de pago →
+              </a>
+            </div>
+            <p style="color: rgba(255,255,255,0.4); font-size: 12px; text-align: center;">
+              Si necesitas ayuda escríbenos a <a href="mailto:atencionalcliente@travitrade.com" style="color: #1D9E75;">atencionalcliente@travitrade.com</a>
+            </p>
+          </div>
+        `
+      }).catch(e => console.error('Email pago fallido error:', e.message))
+    }
+  }
+
+  // Suscripción actualizada (cambio de plan)
+  if (event.type === 'customer.subscription.updated') {
+    const subscription = event.data.object as Stripe.Subscription
+    const interval = subscription.items.data[0]?.price?.recurring?.interval
+    const billingCycle = interval === 'year' ? 'annual' : 'monthly'
+    const status = subscription.status
+
+    if (status === 'active') {
+      await pool.query(
+        "UPDATE users SET plan = 'pro', billing_cycle = $1 WHERE stripe_customer_id = $2",
+        [billingCycle, subscription.customer as string]
+      ).catch(e => console.error('Error actualizando plan:', e.message))
+    } else if (status === 'canceled' || status === 'unpaid') {
+      await pool.query(
+        "UPDATE users SET plan = 'free' WHERE stripe_customer_id = $1",
+        [subscription.customer as string]
+      ).catch(e => console.error('Error actualizando plan cancelado:', e.message))
+    }
+    console.log('Suscripción actualizada:', status, 'para customer:', subscription.customer)
+  }
+
   // Cancelación de suscripción
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object as Stripe.Subscription
