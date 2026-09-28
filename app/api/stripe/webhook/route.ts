@@ -30,10 +30,15 @@ export async function POST(request: Request) {
       if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session
         customerId = session.customer as string
-        customerEmail = session.customer_email || session.customer_details?.email || null
+        // Leer email de customer_details que es donde realmente está
+        customerEmail = session.customer_details?.email ||
+                        session.customer_email ||
+                        session.metadata?.customerEmail ||
+                        null
         userId = session.metadata?.userId || null
         billingCycle = session.metadata?.plan === 'annual' ? 'annual' : 'monthly'
-        console.log('Checkout completed - email:', customerEmail, 'userId:', userId)
+        console.log('Email encontrado:', customerEmail)
+        console.log('userId:', userId)
       }
 
       if (event.type === 'invoice.payment_succeeded') {

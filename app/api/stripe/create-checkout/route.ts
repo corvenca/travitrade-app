@@ -61,7 +61,8 @@ export async function POST(request: Request) {
       metadata: {
         userId: userId?.toString() || '',
         plan,
-        userName: userName || ''
+        userName: userName || '',
+        customerEmail: userEmail || ''
       },
       subscription_data: {
         metadata: {
