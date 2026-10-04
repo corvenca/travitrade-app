@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { COUNTRIES } from '@/lib/countries';
@@ -287,6 +287,45 @@ export default function RegistroPage() {
   const [sendingCode, setSendingCode] = useState(false);
   const [codeError, setCodeError] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
+
+  // Verificación de username
+  const [usernameStatus, setUsernameStatus] = useState<{
+    available: boolean | null
+    message: string
+    suggestions: string[]
+  }>({ available: null, message: '', suggestions: [] });
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const checkUsernameTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const handleUsernameChange = (value: string) => {
+    setFormData(prev => ({ ...prev, username: value }));
+    setUsernameStatus({ available: null, message: '', suggestions: [] });
+
+    if (checkUsernameTimeout.current) clearTimeout(checkUsernameTimeout.current);
+
+    if (value.length < 3) {
+      setUsernameStatus({ available: null, message: 'Mínimo 3 caracteres', suggestions: [] });
+      return;
+    }
+
+    checkUsernameTimeout.current = setTimeout(async () => {
+      setCheckingUsername(true);
+      try {
+        const res = await fetch('/api/auth/check-username', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: value })
+        });
+        const data = await res.json();
+        setUsernameStatus({
+          available: data.available,
+          message: data.message || '',
+          suggestions: data.suggestions || []
+        });
+      } catch {}
+      setCheckingUsername(false);
+    }, 500);
+  };
 
   useEffect(() => {
     if (resendTimer <= 0) return;
@@ -611,19 +650,53 @@ export default function RegistroPage() {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-300">Nombre de usuario</label>
-              <div className="mt-1">
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>NOMBRE DE USUARIO *</label>
+              <div style={{ position: 'relative' }}>
                 <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  required
                   value={formData.username}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 bg-[#0a1a0f] text-white focus:outline-none focus:ring-[#1D9E75] focus:border-[#1D9E75] sm:text-sm transition-colors"
+                  onChange={e => handleUsernameChange(e.target.value.toLowerCase().replace(/\s/g, '_'))}
+                  placeholder="ej: trader_juan"
+                  style={{
+                    width: '100%',
+                    background: '#0a1a0f',
+                    border: `0.5px solid ${usernameStatus.available === true ? '#1D9E75' : usernameStatus.available === false ? '#E24B4A' : '#1a3a24'}`,
+                    borderRadius: '8px',
+                    padding: '10px 40px 10px 12px',
+                    color: '#9FE1CB',
+                    fontSize: '13px',
+                    outline: 'none'
+                  }}
                 />
+                <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px' }}>
+                  {checkingUsername ? '⏳' : usernameStatus.available === true ? '✅' : usernameStatus.available === false ? '❌' : ''}
+                </div>
               </div>
+
+              {/* Mensaje de estado */}
+              {usernameStatus.message && (
+                <div style={{ fontSize: '12px', marginTop: '5px', color: usernameStatus.available ? '#1D9E75' : usernameStatus.available === false ? '#E24B4A' : 'rgba(159,225,203,0.4)' }}>
+                  {usernameStatus.available === true ? '✓ ' : usernameStatus.available === false ? '✗ ' : ''}{usernameStatus.message}
+                </div>
+              )}
+
+              {/* Sugerencias */}
+              {usernameStatus.suggestions.length > 0 && (
+                <div style={{ marginTop: '8px' }}>
+                  <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginBottom: '5px' }}>Sugerencias disponibles:</div>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {usernameStatus.suggestions.map(s => (
+                      <button key={s} type="button"
+                        onClick={() => {
+                          handleUsernameChange(s)
+                        }}
+                        style={{ padding: '4px 12px', background: '#0f2e1a', border: '0.5px solid #1D9E75', borderRadius: '20px', color: '#1D9E75', fontSize: '12px', cursor: 'pointer' }}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">

@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
     // Verificar username duplicado
     const usernameExists = await pool.query(
-      'SELECT id FROM users WHERE username = $1',
+      'SELECT id FROM users WHERE LOWER(username) = LOWER($1)',
       [username]
     );
     if (usernameExists.rows.length > 0) {
