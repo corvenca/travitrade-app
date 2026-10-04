@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import pool from '@/lib/db'
 
+const APP_URL = 'https://app.travitrade.com'
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -8,7 +10,7 @@ export async function GET(request: Request) {
     const email = searchParams.get('email')
 
     if (!token || !email) {
-      return NextResponse.redirect(new URL('/registro?error=invalid', request.url))
+      return NextResponse.redirect(`${APP_URL}/registro?error=invalid`)
     }
 
     const result = await pool.query(
@@ -18,18 +20,14 @@ export async function GET(request: Request) {
     )
 
     if (result.rows.length === 0) {
-      return NextResponse.redirect(new URL('/registro?error=expired', request.url))
+      return NextResponse.redirect(`${APP_URL}/registro?error=expired`)
     }
 
-    // Marcar como verificado
     await pool.query('UPDATE email_verifications SET used = true WHERE email = $1', [email])
 
-    // Redirigir al registro con el email verificado
     const encodedEmail = encodeURIComponent(email)
-    return NextResponse.redirect(
-      new URL(`/registro?verified=true&email=${encodedEmail}`, request.url)
-    )
+    return NextResponse.redirect(`${APP_URL}/registro?verified=true&email=${encodedEmail}`)
   } catch (error: any) {
-    return NextResponse.redirect(new URL('/registro?error=server', request.url))
+    return NextResponse.redirect(`${APP_URL}/registro?error=server`)
   }
 }
