@@ -449,7 +449,7 @@ export default function RegistroPage() {
               {codeError && <div style={{ color: '#E24B4A', fontSize: '12px', marginBottom: '12px' }}>{codeError}</div>}
               <button id="sendCodeBtn" type="button" onClick={handleSendCode} disabled={sendingCode}
                 style={{ width: '100%', padding: '11px', background: '#1D9E75', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: 'pointer', opacity: sendingCode ? 0.7 : 1 }}>
-                {sendingCode ? 'Enviando enlace...' : 'Enviar enlace de verificación →'}
+                {sendingCode ? 'Procesando...' : 'Continuar →'}
               </button>
             </div>
           )}
@@ -459,18 +459,18 @@ export default function RegistroPage() {
               <div style={{ fontSize: '52px', marginBottom: '16px' }}>📧</div>
               <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#fff', marginBottom: '8px' }}>Revisa tu correo</h2>
               <p style={{ fontSize: '14px', color: 'rgba(159,225,203,0.6)', marginBottom: '6px', lineHeight: '1.6' }}>
-                Enviamos un enlace de verificación a:
+                Te enviamos un mensaje de confirmación a:
               </p>
               <div style={{ fontSize: '15px', fontWeight: '500', color: '#1D9E75', marginBottom: '20px' }}>
                 {emailToVerify}
               </div>
               <div style={{ background: '#0a1a0f', borderRadius: '8px', padding: '14px', marginBottom: '20px', border: '0.5px solid #1a3a24', fontSize: '13px', color: 'rgba(159,225,203,0.5)', lineHeight: '1.6' }}>
-                Haz clic en el botón del correo para verificar tu dirección y continuar con el registro automáticamente.
+                Revisa tu bandeja de entrada y confirma tu correo para continuar con el registro.
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <button onClick={handleSendCode} disabled={resendTimer > 0}
                   style={{ padding: '10px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '8px', color: resendTimer > 0 ? 'rgba(159,225,203,0.3)' : '#9FE1CB', fontSize: '13px', cursor: resendTimer > 0 ? 'not-allowed' : 'pointer' }}>
-                  {resendTimer > 0 ? `Reenviar en ${resendTimer}s` : '🔄 Reenviar enlace'}
+                  {resendTimer > 0 ? `Reenviar en ${resendTimer}s` : 'Reenviar confirmación'}
                 </button>
                 <button onClick={() => { setStep('email'); setCodeError('') }}
                   style={{ padding: '8px', background: 'transparent', border: 'none', color: 'rgba(159,225,203,0.4)', fontSize: '12px', cursor: 'pointer' }}>
