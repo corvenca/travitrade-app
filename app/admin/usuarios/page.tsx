@@ -15,6 +15,10 @@ export default function UsuariosPage() {
   const [success, setSuccess] = useState('')
   const [newUser, setNewUser] = useState({ nombre: '', apellido: '', email: '', telefono: '', pais: '', username: '', password: '', plan: 'free' })
 
+  const [showDeleteModal, setShowDeleteModal] = useState<any>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteSuccess, setDeleteSuccess] = useState('')
+
   const [journalStats, setJournalStats] = useState<any>(null)
   const [loadingStats, setLoadingStats] = useState(false)
   const [showJournalModal, setShowJournalModal] = useState<any>(null)
@@ -58,6 +62,25 @@ export default function UsuariosPage() {
     fetchUsers()
     setSaving(false)
     setTimeout(() => setSuccess(''), 3000)
+  }
+
+  const handleDelete = async (userId: number) => {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (res.ok) {
+        setDeleteSuccess('Usuario eliminado correctamente')
+        setShowDeleteModal(null)
+        fetchUsers()
+        setTimeout(() => setDeleteSuccess(''), 3000)
+      } else {
+        alert('Error: ' + data.error)
+      }
+    } catch {
+      alert('Error de conexión')
+    }
+    setDeleting(false)
   }
 
 
@@ -154,9 +177,9 @@ export default function UsuariosPage() {
           </button>
         </div>
 
-        {success && (
+        {(success || deleteSuccess) && (
           <div style={{ background: 'rgba(29,158,117,0.1)', border: '0.5px solid #1D9E75', borderRadius: '8px', padding: '10px 14px', color: '#1D9E75', fontSize: '13px', marginBottom: '16px' }}>
-            ✓ {success}
+            ✓ {success || deleteSuccess}
           </div>
         )}
 
@@ -264,6 +287,12 @@ export default function UsuariosPage() {
                           Bloquear
                         </button>
                       )}
+
+                      {/* Eliminar */}
+                      <button onClick={() => setShowDeleteModal(u)}
+                        style={{ padding: '4px 10px', background: 'transparent', border: '0.5px solid #E24B4A', borderRadius: '6px', color: '#E24B4A', fontSize: '11px', cursor: 'pointer' }}>
+                        🗑 Eliminar
+                      </button>
 
                     </div>
                   </td>
@@ -651,6 +680,38 @@ export default function UsuariosPage() {
                 ) : null}
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ELIMINAR */}
+      {showDeleteModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+          <div style={{ background: '#0d1f14', border: '0.5px solid #E24B4A', borderRadius: '12px', padding: '28px', width: '100%', maxWidth: '420px' }}>
+            <div style={{ fontSize: '40px', textAlign: 'center', marginBottom: '16px' }}>⚠️</div>
+            <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#fff', marginBottom: '8px', textAlign: 'center' }}>
+              ¿Estás seguro?
+            </h2>
+            <p style={{ fontSize: '14px', color: 'rgba(159,225,203,0.6)', marginBottom: '6px', textAlign: 'center', lineHeight: '1.6' }}>
+              Vas a eliminar permanentemente a:
+            </p>
+            <div style={{ background: '#0a1a0f', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px', textAlign: 'center' }}>
+              <div style={{ fontSize: '15px', fontWeight: '500', color: '#fff' }}>{showDeleteModal.nombre} {showDeleteModal.apellido}</div>
+              <div style={{ fontSize: '13px', color: 'rgba(159,225,203,0.5)', marginTop: '4px' }}>{showDeleteModal.email}</div>
+              <div style={{ fontSize: '12px', color: '#E24B4A', marginTop: '6px' }}>
+                Se eliminarán todas sus operaciones, cuentas y datos
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => handleDelete(showDeleteModal.id)} disabled={deleting}
+                style={{ flex: 1, padding: '11px', background: '#E24B4A', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '13px', fontWeight: '500', cursor: 'pointer', opacity: deleting ? 0.6 : 1 }}>
+                {deleting ? 'Eliminando...' : 'Sí, eliminar permanentemente'}
+              </button>
+              <button onClick={() => setShowDeleteModal(null)}
+                style={{ flex: 1, padding: '11px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '8px', color: '#9FE1CB', fontSize: '13px', cursor: 'pointer' }}>
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}
