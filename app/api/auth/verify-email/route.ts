@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     await pool.query('UPDATE email_verifications SET used = true WHERE email = $1', [email])
 
     const encodedEmail = encodeURIComponent(email)
-    return NextResponse.redirect(`${APP_URL}/registro?verified=true&email=${encodedEmail}`)
+    return NextResponse.redirect(`${APP_URL}/registro/verificado?email=${encodedEmail}`)
   } catch (error: any) {
     return NextResponse.redirect(`${APP_URL}/registro?error=server`)
   }

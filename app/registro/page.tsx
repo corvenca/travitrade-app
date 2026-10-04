@@ -294,6 +294,27 @@ export default function RegistroPage() {
     return () => clearTimeout(t);
   }, [resendTimer]);
 
+  // Polling cada 3 segundos para verificar si el email fue confirmado
+  useEffect(() => {
+    if (step !== 'code' || !emailToVerify) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/auth/check-verification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailToVerify })
+        });
+        const data = await res.json();
+        if (data.verified) {
+          clearInterval(interval);
+          setFormData(prev => ({ ...prev, email: emailToVerify }));
+          setStep('form');
+        }
+      } catch {}
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [step, emailToVerify]);
+
   // Paso 1 — Enviar enlace al email
   const handleSendCode = async () => {
     if (!emailToVerify) { setCodeError('Ingresa tu email'); return; }
@@ -482,9 +503,13 @@ export default function RegistroPage() {
 
           {step === 'form' && (
           <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', padding: '10px 14px', background: 'rgba(29,158,117,0.1)', border: '0.5px solid #1D9E75', borderRadius: '8px' }}>
-            <span style={{ color: '#1D9E75', fontSize: '16px' }}>✓</span>
-            <span style={{ fontSize: '13px', color: '#1D9E75' }}>Email verificado: {formData.email}</span>
+          {/* Email verificado — no editable */}
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>CORREO ELECTRÓNICO</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#0a1a0f', border: '0.5px solid #1D9E75', borderRadius: '8px', padding: '10px 12px' }}>
+              <span style={{ fontSize: '13px', color: '#1D9E75', flex: 1 }}>{emailToVerify || formData.email}</span>
+              <span style={{ fontSize: '11px', color: '#1D9E75', background: 'rgba(29,158,117,0.15)', padding: '2px 8px', borderRadius: '20px' }}>✓ Verificado</span>
+            </div>
           </div>
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
