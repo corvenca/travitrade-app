@@ -240,17 +240,22 @@ export default function RegistroPage() {
     password: '',
     confirmPassword: '',
   });
-  const [selectedPlan, setSelectedPlan] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const planParam = params.get('plan');
-      if (planParam && ['free', 'pro', 'business'].includes(planParam)) {
-        return planParam;
-      }
-    }
-    return 'free';
-  });
+  const [selectedPlan, setSelectedPlan] = useState('free');
   const [billingCycle, setBillingCycle] = useState('monthly');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get('plan');
+    if (plan === 'pro_annual') {
+      setSelectedPlan('pro');
+      setBillingCycle('annual');
+    } else if (plan) {
+      setSelectedPlan(plan);
+    }
+  }, []);
+
+  const isPro = selectedPlan === 'pro' || selectedPlan === 'pro_annual';
+  const isAnnual = selectedPlan === 'pro_annual' || billingCycle === 'annual';
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -296,8 +301,36 @@ export default function RegistroPage() {
       const data = await res.json();
 
       if (data.success) {
-        router.push('/dashboard');
-        router.refresh();
+        if (isPro) {
+          const planType = isAnnual ? 'annual' : 'monthly';
+          // Login automático
+          const loginRes = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: formData.email, password: formData.password }),
+          });
+
+          if (loginRes.ok) {
+            const priceId = planType === 'annual'
+              ? process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL
+              : process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY;
+
+            const checkoutRes = await fetch('/api/stripe/create-checkout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ priceId, plan: planType }),
+            });
+            const checkoutData = await checkoutRes.json();
+            if (checkoutData.url) {
+              window.location.href = checkoutData.url;
+              return;
+            }
+          }
+          // Si falla el checkout, ir a upgrade
+          router.push(`/upgrade?plan=${planType}`);
+        } else {
+          router.push('/login');
+        }
       } else {
         setError(data.error || 'Error al crear cuenta');
       }
@@ -334,6 +367,11 @@ export default function RegistroPage() {
               </div>
             )}
           </div>
+          {isPro && (
+            <div style={{ background: 'rgba(29,158,117,0.1)', border: '0.5px solid #1D9E75', borderRadius: '8px', padding: '10px 14px', marginBottom: '16px', fontSize: '13px', color: '#1D9E75', textAlign: 'center' }}>
+              ⭐ Después del registro serás redirigido al pago del plan {isAnnual ? 'Pro Anual ($50/año)' : 'Pro ($5.99/mes)'}
+            </div>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <div>
@@ -570,12 +608,13 @@ export default function RegistroPage() {
             </div>
 
             <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#1D9E75] hover:bg-[#157a5a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1D9E75] focus:ring-offset-[#0a1a0f] transition-colors disabled:opacity-50"
-              >
-                {loading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
+              <button type="submit" disabled={loading}
+                style={{ width: '100%', padding: '12px', background: '#1D9E75', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
+                {loading ? 'Creando cuenta...' :
+                  isPro && isAnnual ? 'Crear cuenta y suscribirse anual →' :
+                  isPro ? 'Crear cuenta y suscribirse a Pro →' :
+                  'Crear cuenta gratis →'
+                }
               </button>
             </div>
           </form>

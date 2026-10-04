@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     let userId = null
     try {
       const cookieStore = await cookies()
-      const token = cookieStore.get('token')
+      const token = cookieStore.get('travitrade_session') || cookieStore.get('token')
       if (token) {
         const decoded = jwt.verify(token.value, process.env.JWT_SECRET || 'travitrade_secret_2025') as any
         const userRes = await pool.query('SELECT id, nombre, apellido, email FROM users WHERE id = $1', [decoded.userId])

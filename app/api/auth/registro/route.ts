@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Faltan campos requeridos' }, { status: 400 });
     }
 
-    const plan = reqPlan || 'free';
+    const plan = 'free';
     const billingCycle = reqBillingCycle || 'monthly';
 
     // Verificar email duplicado
@@ -46,17 +46,17 @@ export async function POST(req: Request) {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // Insert user
+    // Insert user - siempre plan 'free'
     const insertResult = await pool.query(
       `INSERT INTO users (nombre, apellido, email, telefono, pais, username, password_hash, plan, billing_cycle) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, nombre, email, plan, billing_cycle`,
-      [nombre, apellido, email, telefono, pais, username, passwordHash, plan, billingCycle]
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'free', $8) RETURNING id, nombre, email, plan, billing_cycle`,
+      [nombre, apellido, email, telefono, pais, username, passwordHash, billingCycle]
     );
 
     const user = insertResult.rows[0];
 
     // Generate JWT
-    const token = await new SignJWT({ userId: user.id, email: user.email, plan: user.plan })
+    const token = await new SignJWT({ userId: user.id, email: user.email, plan: 'free' })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('1d')
