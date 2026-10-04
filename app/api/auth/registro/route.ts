@@ -18,6 +18,19 @@ export async function POST(req: Request) {
     const plan = 'free';
     const billingCycle = reqBillingCycle || 'monthly';
 
+    // Verificar que el código de email fue validado (en la última hora)
+    const verification = await pool.query(
+      `SELECT id FROM email_verifications
+       WHERE email = $1 AND used = true AND created_at > NOW() - INTERVAL '1 hour'`,
+      [String(email).trim().toLowerCase()]
+    );
+    if (verification.rows.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Debes verificar tu correo antes de registrarte' },
+        { status: 400 }
+      );
+    }
+
     // Verificar email duplicado
     const emailExists = await pool.query(
       'SELECT id FROM users WHERE email = $1',
@@ -48,10 +61,12 @@ export async function POST(req: Request) {
 
     // Insert user - siempre plan 'free'
     const insertResult = await pool.query(
-      `INSERT INTO users (nombre, apellido, email, telefono, pais, username, password_hash, plan, billing_cycle) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'free', $8) RETURNING id, nombre, email, plan, billing_cycle`,
+      `INSERT INTO users (nombre, apellido, email, telefono, pais, username, password_hash, plan, billing_cycle, email_verified) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'free', $8, true) RETURNING id, nombre, email, plan, billing_cycle`,
       [nombre, apellido, email, telefono, pais, username, passwordHash, billingCycle]
     );
+
+    await pool.query('DELETE FROM email_verifications WHERE email = $1', [String(email).trim().toLowerCase()]);
 
     const user = insertResult.rows[0];
 

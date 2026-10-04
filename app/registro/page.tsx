@@ -259,6 +259,65 @@ export default function RegistroPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Verificación de email
+  const [step, setStep] = useState<'email' | 'code' | 'form'>('email');
+  const [emailToVerify, setEmailToVerify] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
+  const [codeError, setCodeError] = useState('');
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    if (resendTimer <= 0) return;
+    const t = setTimeout(() => setResendTimer(s => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendTimer]);
+
+  // Paso 1 — Enviar código al email
+  const handleSendCode = async () => {
+    if (!emailToVerify) { setCodeError('Ingresa tu email'); return; }
+    setSendingCode(true);
+    setCodeError('');
+    try {
+      const res = await fetch('/api/auth/send-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailToVerify })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStep('code');
+        setResendTimer(60);
+      } else {
+        setCodeError(data.error || 'Error al enviar código');
+      }
+    } catch { setCodeError('Error de conexión'); }
+    setSendingCode(false);
+  };
+
+  // Paso 2 — Verificar código
+  const handleVerifyCode = async () => {
+    if (verificationCode.length !== 6) { setCodeError('El código debe tener 6 dígitos'); return; }
+    setVerifyingCode(true);
+    setCodeError('');
+    try {
+      const res = await fetch('/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailToVerify, code: verificationCode })
+      });
+      const data = await res.json();
+      if (res.ok && data.verified) {
+        setFormData(prev => ({ ...prev, email: emailToVerify.trim().toLowerCase() }));
+        setStep('form');
+      } else {
+        setCodeError(data.error || 'Código incorrecto');
+      }
+    } catch { setCodeError('Error de conexión'); }
+    setVerifyingCode(false);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -372,6 +431,83 @@ export default function RegistroPage() {
               ⭐ Después del registro serás redirigido al pago del plan {isAnnual ? 'Pro Anual ($50/año)' : 'Pro ($5.99/mes)'}
             </div>
           )}
+          {step === 'email' && (
+            <div>
+              <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#fff', marginBottom: '6px' }}>Crear cuenta</h2>
+              <p style={{ fontSize: '13px', color: 'rgba(159,225,203,0.5)', marginBottom: '20px' }}>Ingresa tu correo para comenzar</p>
+              <div style={{ marginBottom: '14px' }}>
+                <label htmlFor="emailToVerify" style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>CORREO ELECTRÓNICO</label>
+                <input
+                  id="emailToVerify"
+                  type="email"
+                  autoComplete="email"
+                  value={emailToVerify}
+                  onChange={e => setEmailToVerify(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSendCode()}
+                  placeholder="tu@correo.com"
+                  style={{ width: '100%', background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '10px 12px', color: '#9FE1CB', fontSize: '13px', outline: 'none' }}
+                />
+              </div>
+              {codeError && <div style={{ color: '#E24B4A', fontSize: '12px', marginBottom: '12px' }}>{codeError}</div>}
+              <button id="sendCodeBtn" type="button" onClick={handleSendCode} disabled={sendingCode}
+                style={{ width: '100%', padding: '11px', background: '#1D9E75', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: 'pointer', opacity: sendingCode ? 0.7 : 1 }}>
+                {sendingCode ? 'Enviando código...' : 'Enviar código de verificación →'}
+              </button>
+            </div>
+          )}
+
+          {step === 'code' && (
+            <div>
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <div style={{ fontSize: '36px', marginBottom: '10px' }}>📧</div>
+                <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#fff', marginBottom: '6px' }}>Revisa tu correo</h2>
+                <p style={{ fontSize: '13px', color: 'rgba(159,225,203,0.5)', lineHeight: '1.6' }}>
+                  Enviamos un código de 6 dígitos a<br />
+                  <strong style={{ color: '#9FE1CB' }}>{emailToVerify}</strong>
+                </p>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label htmlFor="verificationCode" style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>CÓDIGO DE VERIFICACIÓN</label>
+                <input
+                  id="verificationCode"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={verificationCode}
+                  onChange={e => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                  onKeyDown={e => e.key === 'Enter' && handleVerifyCode()}
+                  placeholder="000000"
+                  style={{ width: '100%', background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '12px', color: '#1D9E75', fontSize: '24px', fontWeight: '700', letterSpacing: '8px', textAlign: 'center', outline: 'none' }}
+                />
+              </div>
+              {codeError && <div style={{ color: '#E24B4A', fontSize: '12px', marginBottom: '12px', textAlign: 'center' }}>{codeError}</div>}
+              <button id="verifyCodeBtn" type="button" onClick={handleVerifyCode} disabled={verifyingCode || verificationCode.length !== 6}
+                style={{ width: '100%', padding: '11px', background: '#1D9E75', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: 'pointer', opacity: verifyingCode || verificationCode.length !== 6 ? 0.7 : 1, marginBottom: '12px' }}>
+                {verifyingCode ? 'Verificando...' : 'Verificar código →'}
+              </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                <button type="button" onClick={() => { setStep('email'); setVerificationCode(''); setCodeError(''); }}
+                  style={{ background: 'transparent', border: 'none', color: 'rgba(159,225,203,0.4)', cursor: 'pointer', fontSize: '12px' }}>
+                  ← Cambiar email
+                </button>
+                {resendTimer > 0 ? (
+                  <span style={{ color: 'rgba(159,225,203,0.4)' }}>Reenviar en {resendTimer}s</span>
+                ) : (
+                  <button type="button" onClick={handleSendCode} style={{ background: 'transparent', border: 'none', color: '#1D9E75', cursor: 'pointer', fontSize: '12px' }}>
+                    Reenviar código
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {step === 'form' && (
+          <>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', padding: '10px 14px', background: 'rgba(29,158,117,0.1)', border: '0.5px solid #1D9E75', borderRadius: '8px' }}>
+            <span style={{ color: '#1D9E75', fontSize: '16px' }}>✓</span>
+            <span style={{ fontSize: '13px', color: '#1D9E75' }}>Email verificado: {formData.email}</span>
+          </div>
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <div>
@@ -401,22 +537,6 @@ export default function RegistroPage() {
                     className="appearance-none block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 bg-[#0a1a0f] text-white focus:outline-none focus:ring-[#1D9E75] focus:border-[#1D9E75] sm:text-sm transition-colors"
                   />
                 </div>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">Correo Electrónico</label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 bg-[#0a1a0f] text-white focus:outline-none focus:ring-[#1D9E75] focus:border-[#1D9E75] sm:text-sm transition-colors"
-                />
               </div>
             </div>
 
@@ -618,6 +738,8 @@ export default function RegistroPage() {
               </button>
             </div>
           </form>
+          </>
+          )}
 
           <div className="mt-6">
             <div className="relative">
