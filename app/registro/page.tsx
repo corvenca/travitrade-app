@@ -241,6 +241,8 @@ export default function RegistroPage() {
     confirmPassword: '',
   });
   const [selectedPlan, setSelectedPlan] = useState('free');
+  const [dialCode, setDialCode] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [billingCycle, setBillingCycle] = useState('monthly');
 
   useEffect(() => {
@@ -551,35 +553,53 @@ export default function RegistroPage() {
             </div>
           </div>
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="nombre" className="block text-sm font-medium text-gray-300">Nombre</label>
-                <div className="mt-1">
-                  <input
-                    id="nombre"
-                    name="nombre"
-                    type="text"
-                    required
-                    value={formData.nombre}
-                    onChange={handleChange}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 bg-[#0a1a0f] text-white focus:outline-none focus:ring-[#1D9E75] focus:border-[#1D9E75] sm:text-sm transition-colors"
-                  />
-                </div>
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>PAÍS *</label>
+              <select
+                value={formData.pais}
+                onChange={e => {
+                  const country = COUNTRIES.find(c => c.name === e.target.value)
+                  setFormData(prev => ({ ...prev, pais: e.target.value }))
+                  if (country) {
+                    setDialCode(country.dial)
+                    // Actualizar teléfono con el nuevo código
+                    setFormData(prev => ({ ...prev, telefono: country.dial + phoneNumber }))
+                  }
+                }}
+                style={{ width: '100%', background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '10px 12px', color: '#9FE1CB', fontSize: '13px', outline: 'none' }}>
+                <option value="">Selecciona tu país</option>
+                {COUNTRIES.map(c => (
+                  <option key={c.code} value={c.name}>{c.flag} {c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>TELÉFONO / WHATSAPP</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  value={dialCode}
+                  readOnly
+                  placeholder="+00"
+                  style={{ width: '70px', background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '10px 8px', color: '#1D9E75', fontSize: '13px', textAlign: 'center', flexShrink: 0 }}
+                />
+                <input
+                  value={phoneNumber}
+                  onChange={e => {
+                    const num = e.target.value.replace(/\D/g, '')
+                    setPhoneNumber(num)
+                    setFormData(prev => ({ ...prev, telefono: dialCode + num }))
+                  }}
+                  placeholder="Número sin código de país"
+                  type="tel"
+                  style={{ flex: 1, background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '10px 12px', color: '#9FE1CB', fontSize: '13px', outline: 'none' }}
+                />
               </div>
-              <div>
-                <label htmlFor="apellido" className="block text-sm font-medium text-gray-300">Apellido</label>
-                <div className="mt-1">
-                  <input
-                    id="apellido"
-                    name="apellido"
-                    type="text"
-                    required
-                    value={formData.apellido}
-                    onChange={handleChange}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 bg-[#0a1a0f] text-white focus:outline-none focus:ring-[#1D9E75] focus:border-[#1D9E75] sm:text-sm transition-colors"
-                  />
+              {dialCode && phoneNumber && (
+                <div style={{ fontSize: '11px', color: 'rgba(159,225,203,0.4)', marginTop: '4px' }}>
+                  Número completo: {dialCode}{phoneNumber}
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
