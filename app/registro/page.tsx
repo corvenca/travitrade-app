@@ -245,12 +245,34 @@ export default function RegistroPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const verified = params.get('verified');
+    const emailParam = params.get('email');
+    const errorParam = params.get('error');
     const plan = params.get('plan');
+
     if (plan === 'pro_annual') {
       setSelectedPlan('pro');
       setBillingCycle('annual');
     } else if (plan) {
       setSelectedPlan(plan);
+    }
+
+    if (verified === 'true' && emailParam) {
+      const decoded = decodeURIComponent(emailParam).trim().toLowerCase();
+      setEmailToVerify(decoded);
+      setFormData(prev => ({ ...prev, email: decoded }));
+      setStep('form');
+    }
+
+    if (errorParam === 'expired') {
+      setCodeError('El enlace ha expirado. Solicita uno nuevo.');
+      setStep('email');
+    } else if (errorParam === 'invalid') {
+      setCodeError('Enlace inválido. Intenta de nuevo.');
+      setStep('email');
+    } else if (errorParam === 'server') {
+      setCodeError('Error al verificar el enlace. Intenta de nuevo.');
+      setStep('email');
     }
   }, []);
 
@@ -262,9 +284,7 @@ export default function RegistroPage() {
   // Verificación de email
   const [step, setStep] = useState<'email' | 'code' | 'form'>('email');
   const [emailToVerify, setEmailToVerify] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
   const [sendingCode, setSendingCode] = useState(false);
-  const [verifyingCode, setVerifyingCode] = useState(false);
   const [codeError, setCodeError] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
 
@@ -274,7 +294,7 @@ export default function RegistroPage() {
     return () => clearTimeout(t);
   }, [resendTimer]);
 
-  // Paso 1 — Enviar código al email
+  // Paso 1 — Enviar enlace al email
   const handleSendCode = async () => {
     if (!emailToVerify) { setCodeError('Ingresa tu email'); return; }
     setSendingCode(true);
@@ -290,32 +310,10 @@ export default function RegistroPage() {
         setStep('code');
         setResendTimer(60);
       } else {
-        setCodeError(data.error || 'Error al enviar código');
+        setCodeError(data.error || 'Error al enviar enlace');
       }
     } catch { setCodeError('Error de conexión'); }
     setSendingCode(false);
-  };
-
-  // Paso 2 — Verificar código
-  const handleVerifyCode = async () => {
-    if (verificationCode.length !== 6) { setCodeError('El código debe tener 6 dígitos'); return; }
-    setVerifyingCode(true);
-    setCodeError('');
-    try {
-      const res = await fetch('/api/auth/verify-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailToVerify, code: verificationCode })
-      });
-      const data = await res.json();
-      if (res.ok && data.verified) {
-        setFormData(prev => ({ ...prev, email: emailToVerify.trim().toLowerCase() }));
-        setStep('form');
-      } else {
-        setCodeError(data.error || 'Código incorrecto');
-      }
-    } catch { setCodeError('Error de conexión'); }
-    setVerifyingCode(false);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -451,53 +449,33 @@ export default function RegistroPage() {
               {codeError && <div style={{ color: '#E24B4A', fontSize: '12px', marginBottom: '12px' }}>{codeError}</div>}
               <button id="sendCodeBtn" type="button" onClick={handleSendCode} disabled={sendingCode}
                 style={{ width: '100%', padding: '11px', background: '#1D9E75', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: 'pointer', opacity: sendingCode ? 0.7 : 1 }}>
-                {sendingCode ? 'Enviando código...' : 'Enviar código de verificación →'}
+                {sendingCode ? 'Enviando enlace...' : 'Enviar enlace de verificación →'}
               </button>
             </div>
           )}
 
           {step === 'code' && (
-            <div>
-              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <div style={{ fontSize: '36px', marginBottom: '10px' }}>📧</div>
-                <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#fff', marginBottom: '6px' }}>Revisa tu correo</h2>
-                <p style={{ fontSize: '13px', color: 'rgba(159,225,203,0.5)', lineHeight: '1.6' }}>
-                  Enviamos un código de 6 dígitos a<br />
-                  <strong style={{ color: '#9FE1CB' }}>{emailToVerify}</strong>
-                </p>
+            <div style={{ background: '#0d1f14', border: '0.5px solid #1a3a24', borderRadius: '12px', padding: '32px', textAlign: 'center' }}>
+              <div style={{ fontSize: '52px', marginBottom: '16px' }}>📧</div>
+              <h2 style={{ fontSize: '18px', fontWeight: '500', color: '#fff', marginBottom: '8px' }}>Revisa tu correo</h2>
+              <p style={{ fontSize: '14px', color: 'rgba(159,225,203,0.6)', marginBottom: '6px', lineHeight: '1.6' }}>
+                Enviamos un enlace de verificación a:
+              </p>
+              <div style={{ fontSize: '15px', fontWeight: '500', color: '#1D9E75', marginBottom: '20px' }}>
+                {emailToVerify}
               </div>
-              <div style={{ marginBottom: '14px' }}>
-                <label htmlFor="verificationCode" style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>CÓDIGO DE VERIFICACIÓN</label>
-                <input
-                  id="verificationCode"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  value={verificationCode}
-                  onChange={e => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-                  onKeyDown={e => e.key === 'Enter' && handleVerifyCode()}
-                  placeholder="000000"
-                  style={{ width: '100%', background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '12px', color: '#1D9E75', fontSize: '24px', fontWeight: '700', letterSpacing: '8px', textAlign: 'center', outline: 'none' }}
-                />
+              <div style={{ background: '#0a1a0f', borderRadius: '8px', padding: '14px', marginBottom: '20px', border: '0.5px solid #1a3a24', fontSize: '13px', color: 'rgba(159,225,203,0.5)', lineHeight: '1.6' }}>
+                Haz clic en el botón del correo para verificar tu dirección y continuar con el registro automáticamente.
               </div>
-              {codeError && <div style={{ color: '#E24B4A', fontSize: '12px', marginBottom: '12px', textAlign: 'center' }}>{codeError}</div>}
-              <button id="verifyCodeBtn" type="button" onClick={handleVerifyCode} disabled={verifyingCode || verificationCode.length !== 6}
-                style={{ width: '100%', padding: '11px', background: '#1D9E75', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: 'pointer', opacity: verifyingCode || verificationCode.length !== 6 ? 0.7 : 1, marginBottom: '12px' }}>
-                {verifyingCode ? 'Verificando...' : 'Verificar código →'}
-              </button>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                <button type="button" onClick={() => { setStep('email'); setVerificationCode(''); setCodeError(''); }}
-                  style={{ background: 'transparent', border: 'none', color: 'rgba(159,225,203,0.4)', cursor: 'pointer', fontSize: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button onClick={handleSendCode} disabled={resendTimer > 0}
+                  style={{ padding: '10px', background: 'transparent', border: '0.5px solid #1a3a24', borderRadius: '8px', color: resendTimer > 0 ? 'rgba(159,225,203,0.3)' : '#9FE1CB', fontSize: '13px', cursor: resendTimer > 0 ? 'not-allowed' : 'pointer' }}>
+                  {resendTimer > 0 ? `Reenviar en ${resendTimer}s` : '🔄 Reenviar enlace'}
+                </button>
+                <button onClick={() => { setStep('email'); setCodeError('') }}
+                  style={{ padding: '8px', background: 'transparent', border: 'none', color: 'rgba(159,225,203,0.4)', fontSize: '12px', cursor: 'pointer' }}>
                   ← Cambiar email
                 </button>
-                {resendTimer > 0 ? (
-                  <span style={{ color: 'rgba(159,225,203,0.4)' }}>Reenviar en {resendTimer}s</span>
-                ) : (
-                  <button type="button" onClick={handleSendCode} style={{ background: 'transparent', border: 'none', color: '#1D9E75', cursor: 'pointer', fontSize: '12px' }}>
-                    Reenviar código
-                  </button>
-                )}
               </div>
             </div>
           )}
