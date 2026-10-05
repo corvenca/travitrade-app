@@ -553,6 +553,27 @@ export default function RegistroPage() {
             </div>
           </div>
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Nombre y Apellido */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+              <div>
+                <label style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>NOMBRE *</label>
+                <input
+                  value={formData.nombre}
+                  onChange={e => setFormData(prev => ({ ...prev, nombre: e.target.value }))}
+                  placeholder="Tu nombre"
+                  style={{ width: '100%', background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '10px 12px', color: '#9FE1CB', fontSize: '13px', outline: 'none' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>APELLIDO</label>
+                <input
+                  value={formData.apellido}
+                  onChange={e => setFormData(prev => ({ ...prev, apellido: e.target.value }))}
+                  placeholder="Tu apellido"
+                  style={{ width: '100%', background: '#0a1a0f', border: '0.5px solid #1a3a24', borderRadius: '8px', padding: '10px 12px', color: '#9FE1CB', fontSize: '13px', outline: 'none' }}
+                />
+              </div>
+            </div>
             <div style={{ marginBottom: '14px' }}>
               <label style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>PAÍS *</label>
               <select
@@ -602,73 +623,7 @@ export default function RegistroPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="telefono" className="block text-sm font-medium text-gray-300">Número de teléfono</label>
-                <div className="mt-1" style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%' }}>
-                  <select
-                    name="phoneCode"
-                    value={formData.phoneCode}
-                    onChange={handleChange}
-                    style={{
-                      background: '#0d1f14',
-                      border: '0.5px solid #1a3a24',
-                      borderRadius: '6px',
-                      padding: '8px 6px',
-                      color: '#9FE1CB',
-                      fontSize: '13px',
-                      width: '100px',
-                      minWidth: '100px',
-                      flexShrink: 0
-                    }}
-                  >
-                    <option value="">🌐 Código</option>
-                    {PHONE_CODES.map((p, i) => (
-                      <option key={i} value={p.code}>{p.flag} {p.code}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="tel"
-                    name="telefono"
-                    id="telefono"
-                    required
-                    placeholder="Número de teléfono"
-                    value={formData.telefono}
-                    onChange={handleChange}
-                    style={{
-                      flex: 1,
-                      minWidth: 0,
-                      background: '#0d1f14',
-                      border: '0.5px solid #1a3a24',
-                      borderRadius: '6px',
-                      padding: '8px 10px',
-                      color: '#9FE1CB',
-                      fontSize: '13px',
-                      width: '100%'
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="pais" className="block text-sm font-medium text-gray-300">País</label>
-                <div className="mt-1">
-                  <select
-                    id="pais"
-                    name="pais"
-                    required
-                    value={formData.pais}
-                    onChange={handleChange}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-700 rounded-md shadow-sm placeholder-gray-500 bg-[#0a1a0f] text-white focus:outline-none focus:ring-[#1D9E75] focus:border-[#1D9E75] sm:text-sm transition-colors"
-                  >
-                    <option value="">Selecciona tu país</option>
-                    {COUNTRIES.map((country) => (
-                      <option key={country} value={country}>{country}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
+            
 
             <div style={{ marginBottom: '14px' }}>
               <label style={{ fontSize: '11px', color: 'rgba(159,225,203,0.5)', letterSpacing: '1px', marginBottom: '6px', display: 'block' }}>NOMBRE DE USUARIO *</label>
