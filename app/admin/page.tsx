@@ -11,6 +11,21 @@ export default function AdminPage() {
   const [pendingPlans, setPendingPlans] = useState<Record<number, string>>({})
   const [saving, setSaving] = useState<Record<number, boolean>>({})
   const [saved, setSaved] = useState<Record<number, boolean>>({})
+  const [generatingReport, setGeneratingReport] = useState(false)
+  const [reportSuccess, setReportSuccess] = useState('')
+
+  const handleGenerateReport = async () => {
+    setGeneratingReport(true)
+    try {
+      const res = await fetch('/api/admin/backup', { method: 'POST' })
+      const data = await res.json()
+      if (res.ok) {
+        setReportSuccess('Reporte enviado a atencionalcliente@travitrade.com')
+        setTimeout(() => setReportSuccess(''), 4000)
+      }
+    } catch {}
+    setGeneratingReport(false)
+  }
 
   useEffect(() => {
     fetch('/api/admin/stats').then(r => r.json()).then(setStats)
@@ -71,9 +86,20 @@ export default function AdminPage() {
             <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff' }}>Dashboard Admin</div>
             <div style={{ fontSize: '12px', color: 'rgba(159,225,203,0.5)', marginTop: '2px' }}>Vista general del sistema</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#0d1f14', border: '0.5px solid #1D9E75', borderRadius: '20px', padding: '5px 12px', fontSize: '11px', color: '#1D9E75' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1D9E75' }} />
-            Administrador
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button onClick={handleGenerateReport} disabled={generatingReport}
+                style={{ padding: '7px 14px', background: 'transparent', border: '0.5px solid #1D9E75', borderRadius: '8px', color: '#1D9E75', fontSize: '12px', cursor: 'pointer', opacity: generatingReport ? 0.6 : 1 }}>
+                {generatingReport ? 'Generando...' : '📊 Generar reporte'}
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#0d1f14', border: '0.5px solid #1D9E75', borderRadius: '20px', padding: '5px 12px', fontSize: '11px', color: '#1D9E75' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#1D9E75' }} />
+                Administrador
+              </div>
+            </div>
+            {reportSuccess && (
+              <div style={{ fontSize: '12px', color: '#1D9E75', marginTop: '8px' }}>✓ {reportSuccess}</div>
+            )}
           </div>
         </div>
 
