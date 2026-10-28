@@ -22,6 +22,7 @@ export async function POST(request: Request) {
 
   if (event.type === 'checkout.session.completed' || event.type === 'invoice.payment_succeeded') {
     try {
+      const isNewSubscription = event.type === 'checkout.session.completed'
       let customerId: string | null = null
       let customerEmail: string | null = null
       let userId: string | null = null
@@ -108,7 +109,7 @@ export async function POST(request: Request) {
         console.log('Cuenta creada/actualizada automáticamente para:', customerEmail)
       }
 
-      // Enviar email de bienvenida Pro
+      // Enviar email según el tipo de evento
       if (customerEmail) {
         const transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST,
@@ -117,35 +118,68 @@ export async function POST(request: Request) {
           auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
         })
 
-        await transporter.sendMail({
-          from: `"Travitrade" <${process.env.SMTP_USER}>`,
-          to: customerEmail,
-          subject: '🎉 ¡Bienvenido a Travi Journals Pro!',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #fff; padding: 32px; border-radius: 12px;">
-              <div style="text-align: center; margin-bottom: 24px;">
-                <img src="https://travitrade.com/assets/images/Logo.png" alt="Travitrade" style="height: 48px;" />
+        if (isNewSubscription) {
+          // Email de bienvenida — solo al registrarse por primera vez
+          await transporter.sendMail({
+            from: `"Travitrade" <${process.env.SMTP_USER}>`,
+            to: customerEmail,
+            subject: '🎉 ¡Bienvenido a Travi Journals Pro!',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #fff; padding: 32px; border-radius: 12px;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <img src="https://travitrade.com/assets/images/Logo.png" alt="Travitrade" style="height: 48px;" />
+                </div>
+                <div style="text-align: center; margin-bottom: 20px; font-size: 48px;">🎉</div>
+                <h2 style="text-align: center; color: #1D9E75; margin-bottom: 8px;">¡Tu plan Pro está activo!</h2>
+                <p style="color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 24px; line-height: 1.6;">
+                  ${billingCycle === 'annual' ? 'Suscripción anual ($50/año)' : 'Suscripción mensual ($5.99/mes)'} activada correctamente.
+                </p>
+                <div style="background: #0d1f14; border-radius: 10px; padding: 20px; border: 0.5px solid #1D9E75; margin-bottom: 24px;">
+                  ${['✓ Operaciones ilimitadas', '✓ Cuentas ilimitadas', '✓ Reportes avanzados PDF', '✓ Análisis de setups completo', '✓ Soporte prioritario'].map(b => `<div style="padding: 6px 0; border-bottom: 0.5px solid #1a3a24; font-size: 13px; color: #9FE1CB;">${b}</div>`).join('')}
+                </div>
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <a href="https://journals.travitrade.com" style="display: inline-block; background: #1D9E75; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500;">
+                    Ir a Travi Journals →
+                  </a>
+                </div>
+                <p style="color: rgba(255,255,255,0.3); font-size: 11px; text-align: center;">
+                  Controla tu trading. Domina tus finanzas.<br>
+                  <a href="mailto:atencionalcliente@travitrade.com" style="color: #1D9E75;">atencionalcliente@travitrade.com</a>
+                </p>
               </div>
-              <div style="text-align: center; margin-bottom: 20px; font-size: 48px;">🎉</div>
-              <h2 style="text-align: center; color: #1D9E75; margin-bottom: 8px;">¡Tu plan Pro está activo!</h2>
-              <p style="color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 24px; line-height: 1.6;">
-                ${billingCycle === 'annual' ? 'Suscripción anual ($50/año)' : 'Suscripción mensual ($5.99/mes)'} activada correctamente.
-              </p>
-              <div style="background: #0d1f14; border-radius: 10px; padding: 20px; border: 0.5px solid #1D9E75; margin-bottom: 24px;">
-                ${['✓ Operaciones ilimitadas', '✓ Cuentas ilimitadas', '✓ Reportes avanzados PDF', '✓ Análisis de setups completo', '✓ Soporte prioritario'].map(b => `<div style="padding: 6px 0; border-bottom: 0.5px solid #1a3a24; font-size: 13px; color: #9FE1CB;">${b}</div>`).join('')}
+            `
+          }).catch(e => console.error('Email bienvenida error:', e.message))
+
+        } else {
+          // Email de renovación — solo en cobros recurrentes
+          const now = new Date()
+          const fechaRenovacion = now.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+          await transporter.sendMail({
+            from: `"Travitrade" <${process.env.SMTP_USER}>`,
+            to: customerEmail,
+            subject: '✅ Renovación confirmada — Travi Journals Pro',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a1a0f; color: #fff; padding: 32px; border-radius: 12px;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <img src="https://travitrade.com/assets/images/Logo.png" alt="Travitrade" style="height: 48px;" />
+                </div>
+                <h2 style="text-align: center; color: #1D9E75; margin-bottom: 8px;">Renovación confirmada</h2>
+                <p style="color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 24px; line-height: 1.6;">
+                  Tu suscripción ${billingCycle === 'annual' ? 'anual ($50/año)' : 'mensual ($5.99/mes)'} fue renovada el ${fechaRenovacion}.<br/>
+                  Sigues con acceso completo a Travi Journals Pro.
+                </p>
+                <div style="text-align: center; margin-bottom: 24px;">
+                  <a href="https://journals.travitrade.com" style="display: inline-block; background: #1D9E75; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500;">
+                    Ir a Travi Journals →
+                  </a>
+                </div>
+                <p style="color: rgba(255,255,255,0.3); font-size: 11px; text-align: center;">
+                  Si tienes alguna pregunta escríbenos a <a href="mailto:atencionalcliente@travitrade.com" style="color: #1D9E75;">atencionalcliente@travitrade.com</a>
+                </p>
               </div>
-              <div style="text-align: center; margin-bottom: 24px;">
-                <a href="https://journals.travitrade.com" style="display: inline-block; background: #1D9E75; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500;">
-                  Ir a Travi Journals →
-                </a>
-              </div>
-              <p style="color: rgba(255,255,255,0.3); font-size: 11px; text-align: center;">
-                Controla tu trading. Domina tus finanzas.<br>
-                <a href="mailto:atencionalcliente@travitrade.com" style="color: #1D9E75;">atencionalcliente@travitrade.com</a>
-              </p>
-            </div>
-          `
-        }).catch(e => console.error('Email error:', e.message))
+            `
+          }).catch(e => console.error('Email renovacion error:', e.message))
+        }
       }
 
     } catch (err: any) {
